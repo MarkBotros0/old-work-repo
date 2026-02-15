@@ -1,0 +1,345 @@
+# ===================================================================
+# Spring Boot configuration for the "local" profile.
+#
+# This configuration overrides the application.yml file.
+# Used for local development with MySQL database.
+# ===================================================================
+
+# JVM arguments for Java 21 compatibility
+# Add these to your IDE run configuration or Maven command
+# --add-opens java.base/java.lang=ALL-UNNAMED
+# --add-opens java.base/java.util=ALL-UNNAMED
+
+# ===================================================================
+# Standard Spring Boot properties.
+# Full reference is available at:
+# http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+# ===================================================================
+
+fe-url: ${FE_BASE_URL:}
+#user-role: ${USER_ROLE:SPR}
+
+logging:
+    #    config: file:logback-spring.xml
+    config: classpath:logback-spring.xml
+    # App Runner logging: INFO level to reduce log volume (WARN/ERROR still visible)
+    # SQL logs disabled to avoid log noise in production environment
+    level:
+        root: INFO
+        it.deloitte.postrxade: INFO  # INFO level - statistics and important events
+        it.deloitte.postrxade.parser.transaction: WARN  # Only warnings/errors for parsing details
+        it.deloitte.postrxade.service.impl.ObligationServiceImpl: INFO  # Keep statistics visible
+        org.hibernate.SQL: WARN  # Disable SQL query logging in App Runner (too verbose)
+        org.hibernate.type.descriptor.sql.BasicBinder: WARN  # Disable SQL parameter binding logs in App Runner
+        # Riduzione rumore: Security, Session, JPA, JDBC (in dev restano WARN/ERROR)
+        org.springframework.security: WARN
+        org.springframework.session: WARN
+        org.springframework.orm.jpa: WARN
+        org.springframework.jdbc: WARN
+        org.mariadb.jdbc: WARN
+        org.springframework.web.servlet: WARN
+        org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: WARN
+        org.springframework.web.servlet.resource: WARN
+        org.springframework.session.web.http.SessionRepositoryFilter: WARN  # Evita stack trace "No session found / A new session was created"
+
+management:
+    endpoints:
+        web:
+            base-path: /private-monitor
+            exposure:
+                include: ['configprops', 'env', 'health', 'info', 'logfile', 'loggers', 'prometheus', 'threaddump', 'caches']
+    endpoint:
+        health:
+            show-details: always
+            probes:
+                enabled: true
+    health:
+        group:
+            liveness:
+                include: livenessState
+            readiness:
+                include: readinessState
+
+spring:
+    application:
+        name: pos-trx-ade
+
+
+    datasource:
+        type: com.zaxxer.hikari.HikariDataSource
+        # MySQL AWS RDS Database for local development db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com
+        url: jdbc:mariadb://db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com:3306/posappdb?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&autoReconnect=true&connectTimeout=10000&socketTimeout=300000&trustServerCertificate=true
+        username: posappusr
+        password: GNEMOBY
+        driverClassName: org.mariadb.jdbc.Driver
+        hikari:
+            poolName: Hikari
+            auto-commit: false
+            # Pool size configuration - critical for batch processing
+            maximum-pool-size: 10  # Max connections (default is 10, but making it explicit)
+            minimum-idle: 2        # Reduced to allow more flexibility during high load
+            connection-timeout: 30000  # 30 seconds to wait for connection
+            idle-timeout: 120000   # 2 minutes before idle connection is removed
+            max-lifetime: 600000   # 10 minutes max lifetime (shorter to avoid stale connections)
+            # Leak detection: 5 minutes for bulk operations (staging can take longer)
+            leak-detection-threshold: 300000  # Log warning if connection held > 1 minute
+            # Connection validation - CRITICAL for detecting dead connections
+            validation-timeout: 5000  # 5 seconds to validate a connection
+            keepalive-time: 60000  # Send keepalive every 60 seconds to prevent RDS timeout
+            data-source-properties:
+                cachePrepStmts: true
+                prepStmtCacheSize: 250
+                prepStmtCacheSqlLimit: 2048
+                useServerPrepStmts: true
+
+    jpa:
+        open-in-view: false
+        show-sql: false  # Disabled to reduce log noise - SQL logs controlled via logging.level.org.hibernate.SQL
+        hibernate:
+            ddl-auto: validate
+            naming:
+                physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+                implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+        properties:
+            hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+            hibernate.default_schema: posappdb
+            hibernate.jdbc.time_zone: UTC
+            hibernate.id.new_generator_mappings: true
+            hibernate.globally_quoted_identifiers: true
+            hibernate.connection.provider_disables_autocommit: true
+            hibernate.cache.use_second_level_cache: false
+            hibernate.cache.use_query_cache: false
+            hibernate.format_sql: true
+            hibernate.generate_statistics: false
+            hibernate.jdbc.batch_size: 25
+            hibernate.order_inserts: true
+            hibernate.order_updates: true
+            hibernate.jdbc.fetch_size: 150
+            hibernate.criteria.literal_handling_mode: BIND
+            hibernate.query.fail_on_pagination_over_collection_fetch: true
+            hibernate.query.in_clause_parameter_padding: true
+            hibernate.hbm2ddl.auto: validate
+            hibernate.hbm2ddl.import_files: /sql/schema.sql
+
+    jmx:
+        enabled: false
+
+    main:
+        allow-bean-definition-overriding: true
+        banner-mode: 'off'
+
+    messages:
+        basename: i18n/messages
+
+    mvc:
+        favicon:
+            enabled: false
+
+    # OAuth2/OIDC: Nexi (oidc), Amex (oidc-amex), Deloitte SSO (oidc-deloitte). Vedi docs/env-and-deployment.md.
+    security:
+        oauth2:
+            client:
+                provider:
+                    # Nexi - OIDC (fallback: vecchie AZIENDAA_* per migrazione)
+                    oidc:
+                        authorization-uri: ${NEXI_OIDC_AUTHORIZATION_URI:${AZIENDAA_OIDC_AUTHORIZATION_URI:https://intapi.nexi.it/ics/nexiauth/openid/authorize}}
+                        token-uri: ${NEXI_OIDC_TOKEN_URI:${AZIENDAA_OIDC_TOKEN_URI:https://intapi.nexi.it/ics/nexiauth/openid/token}}
+                        jwk-set-uri: ${NEXI_OIDC_JWK_SET_URI:${AZIENDAA_OIDC_JWK_SET_URI:https://intapi.nexi.it/nexi/.well-known/jwks.json}}
+                    # Amex - OIDC (fallback: AZIENDAB_*)
+                    oidc-amex:
+                        authorization-uri: ${AMEX_OIDC_AUTHORIZATION_URI:${AZIENDAB_OIDC_AUTHORIZATION_URI:}}
+                        token-uri: ${AMEX_OIDC_TOKEN_URI:${AZIENDAB_OIDC_TOKEN_URI:}}
+                        jwk-set-uri: ${AMEX_OIDC_JWK_SET_URI:${AZIENDAB_OIDC_JWK_SET_URI:}}
+                    # Deloitte SSO - Entra ID (fallback: AZURE_*)
+                    oidc-deloitte:
+                        authorization-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:${AZURE_TENANT_ID:}}/oauth2/v2.0/authorize
+                        token-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:${AZURE_TENANT_ID:}}/oauth2/v2.0/token
+                        jwk-set-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:${AZURE_TENANT_ID:}}/discovery/v2.0/keys
+
+                registration:
+                    # Nexi - OIDC (fallback: AZIENDAA_*)
+                    oidc:
+                        provider: oidc
+                        client-id: ${NEXI_OIDC_CLIENT_ID:${AZIENDAA_OIDC_CLIENT_ID:ccb6b077-3d4f-448e-91c5-b8e504fe3a09}}
+                        client-secret: ${NEXI_OIDC_CLIENT_SECRET:${AZIENDAA_OIDC_CLIENT_SECRET:a44f5504-7544-4bcf-9ba3-415454dcdc56}}
+                        scope: openid,profile
+                        redirect-uri: ${BE_BASE_URL:http://localhost:8080}/api/login/oauth2/code/oidc
+                        client-authentication-method: client_secret_post
+                        authorization-grant-type: authorization_code
+                    # Amex - OIDC (fallback: AZIENDAB_*)
+                    oidc-amex:
+                        provider: oidc-amex
+                        client-id: ${AMEX_OIDC_CLIENT_ID:${AZIENDAB_OIDC_CLIENT_ID:}}
+                        client-secret: ${AMEX_OIDC_CLIENT_SECRET:${AZIENDAB_OIDC_CLIENT_SECRET:}}
+                        scope: openid,profile
+                        redirect-uri: ${BE_BASE_URL:http://localhost:8080}/api/login/oauth2/code/oidc-amex
+                        client-authentication-method: client_secret_post
+                        authorization-grant-type: authorization_code
+                    # Deloitte SSO (fallback: AZURE_*)
+                    oidc-deloitte:
+                        provider: oidc-deloitte
+                        client-id: ${DELOITTE_SSO_CLIENT_ID:${AZURE_CLIENT_ID:}}
+                        client-secret: ${DELOITTE_SSO_CLIENT_SECRET:${AZURE_CLIENT_SECRET:}}
+                        scope: openid,profile
+                        redirect-uri: ${BE_BASE_URL:http://localhost:8080}/api/login/oauth2/code/oidc-deloitte
+                        client-authentication-method: post
+                        authorization-grant-type: authorization_code
+
+    session:
+        store-type: jdbc
+        jdbc:
+            table-name: SPRING_SESSION
+            initialize-schema: always
+
+    task:
+        execution:
+            thread-name-prefix: pos-task-
+            pool:
+                core-size: 2
+                max-size: 50
+                queue-capacity: 10000
+        scheduling:
+            thread-name-prefix: pos-scheduling-
+            pool:
+                size: 2
+
+    thymeleaf:
+        mode: HTML
+
+    output:
+        ansi:
+            console-available: true
+    servlet:
+        multipart:
+            enabled: true
+            file-size-threshold: 2KB
+            max-file-size: 200MB
+            max-request-size: 215MB
+    docker:
+        compose:
+            enabled: false
+
+# AWS S3 Configuration (uses IAM Role)
+aws:
+  region: ${AWS_REGION:eu-central-1}
+  s3:
+    bucket-name: ${S3_BUCKET_NAME:}
+    region: ${S3_BUCKET_REGION:eu-central-1}
+    output-folder: ${S3_BUCKET_OUTPUT_FOLDER:}
+    input-folder: ${S3_BUCKET_INPUT_FOLDER:}
+    input-folder-loaded: ${S3_BUCKET_INPUT_FOLDER_LOADED:}
+  ecs:
+    enabled: ${AWS_ECS_ENABLED:true}
+    cluster-name: ${AWS_ECS_CLUSTER_NAME:}
+    task-definition-output: ${AWS_ECS_TASK_DEFINITION_OUTPUT:}
+    container-name-output: ${AWS_ECS_CONTAINER_NAME_OUTPUT:output-generation}
+    subnet-ids: ${AWS_ECS_SUBNET_IDS:}
+    security-group-ids: ${AWS_ECS_SECURITY_GROUP_IDS:}
+    launch-type: ${AWS_ECS_LAUNCH_TYPE:FARGATE}
+    # Optional: Override OUTPUT_ROWS_PER_FILE for ECS tasks (if not set, uses task definition default: 1000000)
+    output-rows-per-file: ${AWS_ECS_OUTPUT_ROWS_PER_FILE:}
+    # H2 Database for development (commented out)
+    # url: jdbc:h2:mem:posdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    # username: sa
+    # password: 
+    # driverClassName: org.h2.Driver
+
+springdoc:
+    api-docs:
+        path: /api/docs/api-docs
+    swagger-ui:
+        path: /api/docs/index.html
+        operations-sorter: alpha
+
+server:
+    compression:
+        enabled: true
+        mime-types: text/html,text/xml,text/plain,text/css,application/javascript,application/json
+        min-response-size: 1024
+    error:
+        include-message: always
+    port: 8080
+    servlet:
+        session:
+            # SameSite=Lax: le API usano il Bearer token (JWT), non il cookie; il cookie di sessione
+            # non è inviato cross-origin, quindi Lax è sicuro e risolve il finding DAST/Snyk.
+            cookie:
+                http-only: true
+                same-site: lax
+                secure: true
+            timeout: 3600
+
+# ===================================================================
+# Application specific properties
+# ===================================================================
+application:
+    authority:
+        info-env: 'INT'
+    # Ingestion configuration
+    ingestion:
+        # Use staging tables for high-performance ETL ingestion (recommended for large files)
+        # Set to false to use legacy row-by-row approach
+        use-staging: true
+    http:
+        header-name: ${spring.application.name}
+    cors:
+        # Origini derivate dai tenant (https://{tenantId}.{baseDomain}, https://{tenantId}-be.{baseDomain}). Nessuna variabile per tenant.
+        tenant-base-domain: ${CORS_TENANT_BASE_DOMAIN:testpos-noprod.com}
+        # Opzionale: origini extra comma-separated (es. per override o domini non standard)
+        allowed-origins: ''
+        allowed-methods: 'GET,POST,PUT,DELETE,OPTIONS'
+        allowed-headers: '*'
+        exposed-headers: 'Authorization,Link,X-Total-Count,X-${application.http.header-name}-alert,X-${application.http.header-name}-error,X-${application.http.header-name}-params'
+        allow-credentials: true
+        max-age: 1800
+    rest:
+        tracing-request:
+            enabled: true
+    security:
+        # JWT emesso dall'app dopo login SSO: il FE lo invia come Bearer (evita cookie cross-origin).
+        # Secret: Base64 di almeno 32 bytes. In dev/prod usare variabile d'ambiente (es. APP_JWT_SECRET).
+        app-jwt:
+            secret: ${APP_JWT_SECRET:dGVzdC1zZWNyZXQtYXBwLWp3dC0zMi1ieXRlcy1taW5pbXVtLWxlbg==}
+            expiration-seconds: 3600
+        lambda-token: "my-secret-test-token-123"
+        xsfr:
+            enabled: true
+            cookie-path: /
+            # Durata cookie CSRF (template: 1 ora, persistente)
+            cookie-max-age: 3600
+
+# Docker Compose disabled - using external MySQL database
+# Alternative: Set system property -Dspring.docker.compose.enabled=false
+
+# ===================================================================
+# Multi-Tenant Configuration
+# Tenant nexi = Nexi, amex = Amex. Domini test: docs/env-and-deployment.md.
+# DB: stesso server (DB_HOST:DB_PORT), credenziali per tenant da variabili NEXI_DB_* / AMEX_DB_*.
+# ===================================================================
+multi-tenant:
+    bootstrap-tenant: nexi
+    provider-display-names:
+        oidc: Nexi
+        oidc-amex: Amex
+        oidc-deloitte: Deloitte
+    tenants:
+        nexi:
+            database-name: ${NEXI_DB_NAME:${AZIENDAA_DB_NAME:posappdb}}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${NEXI_DB_NAME:${AZIENDAA_DB_NAME:posappdb}}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${NEXI_DB_USER:${AZIENDAA_DB_USER:posappusr}}
+            database-password: ${NEXI_DB_PASSWORD:${AZIENDAA_DB_PASSWORD:GNEMOBY}}
+            output-codice-fiscale: "04107060966"
+            sso:
+                providers:
+                    - oidc
+                    - oidc-deloitte
+        amex:
+            database-name: ${AMEX_DB_NAME:${AZIENDAB_DB_NAME:aziendab_posappdb}}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${AMEX_DB_NAME:${AZIENDAB_DB_NAME:aziendab_posappdb}}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${AMEX_DB_USER:${AZIENDAB_DB_USER:aziendab_posappusr}}
+            database-password: ${AMEX_DB_PASSWORD:${AZIENDAB_DB_PASSWORD:GNEMOBY}}
+            output-codice-fiscale: "14778691007"
+            sso:
+                providers:
+                    - oidc-amex
+                    - oidc-deloitte
