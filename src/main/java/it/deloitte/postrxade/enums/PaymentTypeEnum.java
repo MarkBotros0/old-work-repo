@@ -5,14 +5,14 @@ import lombok.Getter;
 /**
  * Enumeration for Transaction Payment Types.
  * <p>
- * Handles the mapping between the raw database code (e.g., "00")
- * and the user-friendly label (e.g., "E-commerce").
+ * Handles the mapping between the raw database code and the user-friendly label:
+ * "00" = POS, "01" = E-commerce.
  */
 @Getter
 public enum PaymentTypeEnum {
 
-    E_COMMERCE("00", "E-commerce"),
-    POS("01", "POS"), // Assuming '01' or other codes map to POS
+    POS("00", "POS"),
+    E_COMMERCE("01", "E-commerce"),
     UNKNOWN("UNKNOWN", "Unknown");
 
     private final String code;
@@ -34,9 +34,10 @@ public enum PaymentTypeEnum {
         if (E_COMMERCE.code.equalsIgnoreCase(code)) {
             return E_COMMERCE;
         }
-
-        // Logic from original code: Anything not "00" was treated as POS.
-        // You might want to be stricter here in the future.
-        return POS;
+        // Exact match for POS
+        if (POS.code.equalsIgnoreCase(code)) {
+            return POS;
+        }
+        return UNKNOWN;
     }
 }

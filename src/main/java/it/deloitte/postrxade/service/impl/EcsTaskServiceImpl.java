@@ -25,11 +25,11 @@ import java.util.regex.Pattern;
  * cartella S3 corretti (es. nexi → NEXI/OUTPUT, amex → AMEX/OUTPUT).
  * <p>
  * This service is only available in the main application (dev/local/prod profiles),
- * NOT in batch or output profiles.
+ * NOT in batch, output or response profiles.
  */
 @Slf4j
 @Service
-@Profile("!batch & !output")  // Exclude batch and output profiles - they don't need to launch ECS tasks
+@Profile("!batch & !output & !response")
 public class EcsTaskServiceImpl implements EcsTaskService {
 
     private static final Pattern JDBC_URL_PATTERN = Pattern.compile("jdbc:mariadb://([^:/]+)(?::(\\d+))?/([^?]+)");
@@ -44,10 +44,16 @@ public class EcsTaskServiceImpl implements EcsTaskService {
     private String clusterName;
 
     @Value("${aws.ecs.task-definition-output:}")
-    private String taskDefinitionName;
+    private String taskDefinitionOutput;
 
     @Value("${aws.ecs.container-name-output:output-generation}")
-    private String containerName;
+    private String containerNameOutput;
+
+    @Value("${aws.ecs.task-definition-response:}")
+    private String taskDefinitionResponse;
+
+    @Value("${aws.ecs.container-name-response:response-processing}")
+    private String containerNameResponse;
 
     @Value("${aws.ecs.subnet-ids:}")
     private String subnetIds;
@@ -67,8 +73,23 @@ public class EcsTaskServiceImpl implements EcsTaskService {
     @Value("${aws.s3.region:eu-central-1}")
     private String s3BucketRegion;
 
+    @Value("${aws.s3.input-folder:}")
+    private String s3InputFolder;
+
+    @Value("${aws.s3.input-folder-loaded:}")
+    private String s3InputFolderLoaded;
+
     @Override
     public String launchOutputGenerationTask(Long submissionId) {
+        return launchTask(submissionId, "output");
+    }
+
+    @Override
+    public String launchResponseProcessingTask(Long submissionId) {
+        return launchTask(submissionId, "response");
+    }
+
+    private String launchTask(Long submissionId, String jobType) {
         // Multi-tenant: tenant corrente (da sessione/URL) determina DB e cartella S3 del task
         String tenantId = TenantContext.getTenantId();
         if (tenantId == null || tenantId.isBlank()) {
@@ -83,7 +104,7 @@ public class EcsTaskServiceImpl implements EcsTaskService {
             throw new IllegalStateException("Tenant '" + tenantId + "' is not configured. Cannot launch output generation task.");
         }
 
-        log.info("Launching ECS task for output generation - submissionId: {}, tenant: {}", submissionId, tenantId);
+        log.info("Launching ECS task for {} processing - submissionId: {}, tenant: {}", jobType, submissionId, tenantId);
 
         // Validate ECS client is available
         if (ecsClient == null) {
@@ -95,8 +116,11 @@ public class EcsTaskServiceImpl implements EcsTaskService {
         if (clusterName == null || clusterName.isEmpty()) {
             throw new IllegalStateException("AWS ECS cluster-name is not configured. Set aws.ecs.cluster-name property.");
         }
+        String taskDefinitionName = "response".equals(jobType) ? taskDefinitionResponse : taskDefinitionOutput;
+        String containerName = "response".equals(jobType) ? containerNameResponse : containerNameOutput;
+
         if (taskDefinitionName == null || taskDefinitionName.isEmpty()) {
-            throw new IllegalStateException("AWS ECS task-definition-output is not configured. Set aws.ecs.task-definition-output property.");
+            throw new IllegalStateException("AWS ECS task definition is not configured for job type: " + jobType);
         }
         // Con FARGATE (awsvpc) la network configuration è obbligatoria
         if ("FARGATE".equalsIgnoreCase(launchType != null ? launchType.trim() : "")) {
@@ -120,21 +144,20 @@ public class EcsTaskServiceImpl implements EcsTaskService {
             }
 
             // Nome container: deve coincidere con quello nella task definition ECS (case-sensitive)
-            String effectiveContainerName = (containerName != null && !containerName.isBlank()) ? containerName.trim() : "output-generation";
-            if (effectiveContainerName.equals("output-generation") && (containerName == null || containerName.isBlank())) {
-                log.debug("aws.ecs.container-name-output non impostato, uso default: output-generation");
+            String defaultContainerName = "response".equals(jobType) ? "response-processing" : "output-generation";
+            String effectiveContainerName = (containerName != null && !containerName.isBlank()) ? containerName.trim() : defaultContainerName;
+            if (effectiveContainerName.equals(defaultContainerName) && (containerName == null || containerName.isBlank())) {
+                log.debug("aws.ecs.container-name for {} non impostato, uso default: {}", jobType, defaultContainerName);
             }
 
-            // Cartelle output per tenant: NEXI/OUTPUT, AMEX/OUTPUT (maiuscolo, come su S3)
             String outputFolder = (tenantId != null ? tenantId.toUpperCase() : "OUTPUT") + "/OUTPUT";
-            log.info("Output ECS task: containerName={}, S3_BUCKET_OUTPUT_FOLDER={}, tenant={} (il container nella task definition deve chiamarsi esattamente così, stesso case)",
-                    effectiveContainerName, outputFolder, tenantId);
+            log.info("ECS task {}: containerName={}, tenant={}", jobType, effectiveContainerName, tenantId);
 
             // Prepare environment variables (tenant-specific so ECS task uses correct DB and S3 folder)
             Map<String, String> environmentVariables = new HashMap<>();
             environmentVariables.put("TENANT_ID", tenantId);
             environmentVariables.put("SUBMISSION_ID", String.valueOf(submissionId));
-            environmentVariables.put("SPRING_PROFILES_ACTIVE", "output");
+            environmentVariables.put("SPRING_PROFILES_ACTIVE", "response".equals(jobType) ? "response" : "output");
             environmentVariables.put("DB_HOST", dbEnv.host);
             environmentVariables.put("DB_PORT", String.valueOf(dbEnv.port));
             environmentVariables.put("DB_NAME", tenantProps.getDatabaseName() != null ? tenantProps.getDatabaseName() : dbEnv.databaseName);
@@ -143,9 +166,11 @@ public class EcsTaskServiceImpl implements EcsTaskService {
             environmentVariables.put("S3_BUCKET_NAME", s3BucketName != null ? s3BucketName : "");
             environmentVariables.put("S3_BUCKET_REGION", s3BucketRegion != null ? s3BucketRegion : "eu-central-1");
             environmentVariables.put("S3_BUCKET_OUTPUT_FOLDER", outputFolder);
+            environmentVariables.put("S3_BUCKET_INPUT_FOLDER", s3InputFolder != null ? s3InputFolder : "");
+            environmentVariables.put("S3_BUCKET_INPUT_FOLDER_LOADED", s3InputFolderLoaded != null ? s3InputFolderLoaded : "");
 
             // Add OUTPUT_ROWS_PER_FILE if configured (optional override)
-            if (outputRowsPerFile != null && !outputRowsPerFile.trim().isEmpty()) {
+            if (!"response".equals(jobType) && outputRowsPerFile != null && !outputRowsPerFile.trim().isEmpty()) {
                 environmentVariables.put("OUTPUT_ROWS_PER_FILE", outputRowsPerFile.trim());
                 log.debug("Overriding OUTPUT_ROWS_PER_FILE with value: {}", outputRowsPerFile);
             }
@@ -219,8 +244,8 @@ public class EcsTaskServiceImpl implements EcsTaskService {
             }
 
         } catch (Exception e) {
-            log.error("Error launching ECS task for submissionId {}: {}", submissionId, e.getMessage(), e);
-            throw new RuntimeException("Failed to launch ECS task for output generation", e);
+            log.error("Error launching ECS {} task for submissionId {}: {}", jobType, submissionId, e.getMessage(), e);
+            throw new RuntimeException("Failed to launch ECS task for " + jobType + " processing", e);
         }
     }
 

@@ -205,9 +205,12 @@
             <div class="card">
                 <h3>📚 API Documentation</h3>
                 <p>Access the complete API documentation and explore available endpoints.</p>
-                <a href="/api/docs/index.html" class="btn btn-primary" target="_blank">View Documentation</a>
+                <a th:if="${isAuthenticated}" href="/api/docs/index.html" class="btn btn-primary" target="_blank">View Documentation</a>
+                <span th:if="${!isAuthenticated}" class="status-message status-loading">Effettua il login per accedere alla documentazione.</span>
             </div>
             
+            <!-- Box nascosti in PROD: evitano info/azioni per utenti non autenticati -->
+            <!--
             <div class="card">
                 <h3>🧪 Test Endpoints</h3>
                 <p>Test the available API endpoints and verify system functionality.</p>
@@ -246,6 +249,7 @@
                     </div>
                 </div>
             </div>
+            -->
         </div>
     </div>
 

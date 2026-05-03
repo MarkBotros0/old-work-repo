@@ -371,7 +371,8 @@ public class ObligationServiceImpl implements ObligationService {
         for (Submission s : filteredSubmissions) {
             SubmissionCustomDTO dto = alternativeMapperFacade.map(s, SubmissionCustomDTO.class);
             dto.setValidations(getValidations(s));
-            dto.setIngestionsCount(s.getIngestions().size());
+            dto.setIngestionsCount(s.getIngestions() != null ? s.getIngestions().size() : 0);
+            dto.setOutputFilesCount((int) outputRepository.countBySubmissionId(s.getId()));
             customSubmissions.add(dto);
         }
 
@@ -437,20 +438,16 @@ public class ObligationServiceImpl implements ObligationService {
 
     /**
      * Aggregates validation counts (Errors and Warnings) for a submission.
+     * Counts error records from both transaction file (transato) and anagrafe file, aligned with other dashboards.
      *
      * @param submission The submission to analyze.
      * @return List of ValidationDTO (one for errors, one for warnings).
      */
     private List<ValidationDTO> getValidations(Submission submission) {
-        long errorCount = 0;
-        long warningCount = 0;
-
-        Ingestion ingestion = ingestionRepository.findFirstBySubmission_IdAndIngestionType_Name(
-                submission.getId(), IngestionTypeEnum.TRANSACTIONS.getLabel()).orElse(null);
-
-        if (ingestion == null) return Collections.emptyList();
-        warningCount += errorCauseRepository.countByIngestionAndSeverity(ingestion.getId(), SeverityEnum.WARNING.getLevel());
-        errorCount += errorCauseRepository.countByIngestionAndSeverity(ingestion.getId(), SeverityEnum.ERROR.getLevel());
+        long errorCount = errorCauseRepository.countDistinctErrorRecordsBySubmissionIdAndSeverity(
+                submission.getId(), SeverityEnum.ERROR.getLevel());
+        long warningCount = errorCauseRepository.countDistinctErrorRecordsBySubmissionIdAndSeverity(
+                submission.getId(), SeverityEnum.WARNING.getLevel());
 
         return Arrays.asList(
                 new ValidationDTO(ERROR_TAG, errorCount),
@@ -912,6 +909,8 @@ public class ObligationServiceImpl implements ObligationService {
         int totalTransactionsInserted = 0;
         int totalTransactionsDuplicate = 0;
         int totalMissingMerchants = 0;
+        int totalTransactionValidationErrors = 0;
+        Ingestion ingestionForFinalization = null;
 
         for (String keyName : transatoFiles) {
             String fileName = keyName.substring(keyName.lastIndexOf('/') + 1);
@@ -921,17 +920,20 @@ public class ObligationServiceImpl implements ObligationService {
 
                 log.info("Processing transaction file: {}", fileName);
                 ingestion = this.ingestionService.createIngestionBySubmission(submission, transatoType);
+                // Use the first ingestion as the "finalization" context for STG -> TRANSACTION processing and error records.
+                // This keeps behavior deterministic when multiple files belong to the same submission.
+                if (ingestionForFinalization == null) {
+                    ingestionForFinalization = ingestion;
+                }
 
                 long fileStartTime = System.currentTimeMillis();
-                StagingResult result = stagingIngestionService.processTransactionFile(remoteFile, ingestion, submission, obbligation);
+                StagingResult result = stagingIngestionService.loadTransactionFileToStaging(remoteFile, ingestion, submission, obbligation);
                 long fileElapsed = System.currentTimeMillis() - fileStartTime;
 
-                totalTransactionsInserted += result.insertedCount();
-                totalTransactionsDuplicate += result.duplicateCount();
-                totalMissingMerchants += result.missingMerchantCount();
+                totalTransactionValidationErrors += result.errorCount();
 
-                log.info("Completed transaction file {} in {}ms: inserted={}, duplicates={}, missingMerchants={}",
-                        fileName, fileElapsed, result.insertedCount(), result.duplicateCount(), result.missingMerchantCount());
+                log.info("Completed transaction file {} load-to-staging in {}ms: validationErrors={}",
+                        fileName, fileElapsed, result.errorCount());
 
                 ingestionService.markAsSuccess(ingestion);
                 s3Service.moveFileFromInputToInputLoaded(remoteFile.name());
@@ -949,8 +951,26 @@ public class ObligationServiceImpl implements ObligationService {
             }
         }
 
-        log.info("=== STAGING Phase 2 Complete: {} transactions inserted, {} duplicates, {} missing merchants ===",
-                totalTransactionsInserted, totalTransactionsDuplicate, totalMissingMerchants);
+        // Finalize once for the whole submission after ALL transaction files have been loaded into STG
+        if (ingestionForFinalization != null) {
+            log.info("Finalizing transactions from staging for submission {} ({} transaction file(s))...",
+                    submission.getId(), transatoFiles.size());
+            long finalizeStart = System.currentTimeMillis();
+            StagingResult finalizeResult = stagingIngestionService.finalizeTransactionsFromStaging(ingestionForFinalization, submission);
+            long finalizeElapsed = System.currentTimeMillis() - finalizeStart;
+
+            totalTransactionsInserted += finalizeResult.insertedCount();
+            totalTransactionsDuplicate += finalizeResult.duplicateCount();
+            totalMissingMerchants += finalizeResult.missingMerchantCount();
+
+            log.info("Finalize from staging completed in {}ms: inserted={}, duplicates={}, missingMerchants={}",
+                    finalizeElapsed, finalizeResult.insertedCount(), finalizeResult.duplicateCount(), finalizeResult.missingMerchantCount());
+        } else {
+            log.warn("No transaction ingestions were created for submission {} - skipping finalize from staging", submission.getId());
+        }
+
+        log.info("=== STAGING Phase 2 Complete: {} transactions inserted, {} duplicates, {} missing merchants, {} validation errors ===",
+                totalTransactionsInserted, totalTransactionsDuplicate, totalMissingMerchants, totalTransactionValidationErrors);
 
         // NOTE: Pulizia STG viene eseguita insieme allo spostamento del file .eot
         // dopo il completamento con successo dell'intera ingestion (vedi riga 615)

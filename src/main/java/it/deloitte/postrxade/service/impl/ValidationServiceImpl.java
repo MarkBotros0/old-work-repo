@@ -328,19 +328,20 @@ public class ValidationServiceImpl implements ValidationService {
 
             if (submission.isPresent()) {
                 Long submissionId = submission.get().getId();
+                // batch_id in Excel = Submission.batchId (identificativo del batch di ingestion)
                 String batchId = submission.get().getBatchId();
                 log.info("Processing submission: submissionId={}, batchId={}", submissionId, batchId);
 
                 // OPTIMIZED: Single query with all necessary JOINs
-                // The database optimizer should handle this efficiently with proper indexes
-                // Cursor-based pagination for better performance with large datasets
+                // error_description = ec.error_message (messaggio specifico della causa), non et.description (descrizione generica del tipo)
+                // batch_id (usato in Excel) = Submission.batchId della submission attiva per il periodo
                 String nativeSql = """
                     SELECT 
                         er.pk_error_record,
                         er.raw_row,
                         et.serverity_level,
                         et.name AS error_name,
-                        et.description AS error_description,
+                        ec.error_message AS error_description,
                         i.ingested_at,
                         it.name AS ingestion_type_name
                     FROM ERROR_CAUSE ec
@@ -596,15 +597,20 @@ public class ValidationServiceImpl implements ValidationService {
 // ==================================================================================
 
     /**
-     * Maps an ErrorRecord entity to an ExcelRowDTO for reporting.
+     * Maps an ErrorCause to an ExcelRowDTO for reporting.
+     * error_description = error_message from ErrorCause (messaggio specifico), non la description dell'ErrorType.
+     * batch_id = Submission.batchId (identificativo del batch di ingestion della submission).
      */
     private ExcelRowDTO mapToExcelRow(ErrorCause errorCause, Submission submission, Ingestion ingestion) {
         String type = errorCause.getErrorType().getSeverityLevel() == 1 ? "warning" : "error";
+        String description = (errorCause.getErrorMessage() != null && !errorCause.getErrorMessage().isBlank())
+                ? errorCause.getErrorMessage()
+                : errorCause.getErrorType().getDescription();
         return ExcelRowDTO.builder()
                 .rawRecord(errorCause.getErrorRecord().getRawRow())
                 .type(type)
                 .name(errorCause.getErrorType().getName())
-                .description(errorCause.getErrorType().getDescription())
+                .description(description)
                 .batchId(submission.getBatchId())
                 .timestamp(String.valueOf(ingestion.getIngestedAt()))
                 .fileType(ingestion.getIngestionType().getName())

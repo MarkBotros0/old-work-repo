@@ -133,12 +133,15 @@ public class OverviewDashboardServiceImpl implements OverviewDashboardService {
                             ingSuccess++;
                         }
 
+                        // Transaction stats (reportable + error records): only from TRANSACTIONS ingestion
                         if (ingestion.getIngestionType().getName().equals(IngestionTypeEnum.TRANSACTIONS.getLabel())) {
                             totalTrans = transactionRepository.countByIngestionId(ingestion.getId());
                             totalErrorRecords += errorRecordRepository.countErrorRecordsByIngestionId(ingestion.getId());
-                            totalWarnings += errorCauseRepository.countByIngestionAndSeverity(ingestion.getId(), SeverityEnum.WARNING.getLevel());
-                            totalErrors += errorCauseRepository.countByIngestionAndSeverity(ingestion.getId(), SeverityEnum.ERROR.getLevel());
                         }
+
+                        // Validation errors/warnings: count from BOTH anagrafica and transazioni (all ingestions)
+                        totalWarnings += errorCauseRepository.countByIngestionAndSeverity(ingestion.getId(), SeverityEnum.WARNING.getLevel());
+                        totalErrors += errorCauseRepository.countByIngestionAndSeverity(ingestion.getId(), SeverityEnum.ERROR.getLevel());
                     }
                 }
             }

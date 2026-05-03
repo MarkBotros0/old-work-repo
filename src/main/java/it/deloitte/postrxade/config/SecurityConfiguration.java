@@ -91,7 +91,7 @@ public class SecurityConfiguration {
 	@Value("${application.security.xsfr.cookie-max-age:3600}")
 	private int cfgXsfrCookieMaxAge;
 
-	@Value("${user-role:SPR}")
+	@Value("${user-role:}")
 	private String userRole;
 
 	@Value("${application.security.app-jwt.secret}")

@@ -13,6 +13,8 @@ import it.deloitte.postrxade.repository.SubmissionRepository;
 import it.deloitte.postrxade.repository.SubmissionStatusGroupRepository;
 import it.deloitte.postrxade.repository.SubmissionStatusRepository;
 import it.deloitte.postrxade.service.OutputService;
+import it.deloitte.postrxade.tenant.TenantConfiguration;
+import it.deloitte.postrxade.tenant.TenantContext;
 import it.deloitte.postrxade.service.SubmissionService;
 import it.deloitte.postrxade.service.UserService;
 import it.deloitte.postrxade.utils.AuditLogger;
@@ -26,7 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;
 
@@ -179,6 +183,10 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setIsManual(Boolean.TRUE);
         submission.setLastUpdatedAt(LocalDateTime.now());
 
+        // Submission deadline = last day of the month following the obligation's period.
+        // Es.: obligation DICEMBRE 2025 → deadline 31/01/2026; obligation gennaio 2026 → deadline 28/02/2026.
+        submission.setDeadlineDate(computeSubmissionDeadline(obbligation));
+
         // Usa INGESTION_FINISHED (order 1) come status iniziale per le nuove submission
         // La submission passerà a DATA_VALIDATION durante il processamento e poi a VALIDATION_COMPLETED alla fine
         SubmissionStatus submissionStatus = submissionStatusRepository.findOneByOrder(1)
@@ -187,7 +195,67 @@ public class SubmissionServiceImpl implements SubmissionService {
                                 "Please ensure the database is properly initialized with submission statuses."));
 
         submission.setCurrentSubmissionStatus(submissionStatus);
-        return submissionRepository.save(submission);
+        Submission saved = submissionRepository.save(submission);
+
+        // batch_id = TENANT_SUBMISSIONID_YYYYMM (es. NEXI_123_202512, AMEX_456_202601)
+        String batchId = buildSubmissionBatchId(saved, obbligation);
+        if (batchId != null) {
+            saved.setBatchId(batchId);
+            submissionRepository.save(saved);
+        }
+        return saved;
+    }
+
+    /**
+     * Builds the submission batch_id: TENANT_SUBMISSIONID_OBBLIGATIONYEAROBBLIGATIONMONTH.
+     * Tenant = NEXI o AMEX; year = YYYY; month = MM (01-12).
+     */
+    private String buildSubmissionBatchId(Submission submission, Obbligation obbligation) {
+        if (submission == null || submission.getId() == null || obbligation == null) {
+            return null;
+        }
+        String tenant = TenantContext.getTenantId();
+        if (tenant != null && !tenant.isBlank()) {
+            tenant = TenantConfiguration.resolveTenantAlias(tenant.trim());
+        }
+        if (tenant == null || tenant.isBlank()) {
+            return null;
+        }
+        String tenantUpper = tenant.toUpperCase();
+        Integer year = obbligation.getFiscalYear();
+        if (year == null) return null;
+        if (obbligation.getPeriod() == null) return null;
+        int monthOrder = obbligation.getPeriod().getOrder();
+        String monthStr = monthOrder >= 1 && monthOrder <= 12
+                ? String.format("%02d", monthOrder)
+                : String.valueOf(monthOrder);
+        return tenantUpper + "_" + submission.getId() + "_" + year + monthStr;
+    }
+
+    /**
+     * Computes the submission deadline as the last day of the month following the obligation's period.
+     * Obligation "December 2025" (period order 12, fiscalYear 2025) → 31 January 2026.
+     * Obligation "January 2026" (period order 1, fiscalYear 2026) → 28 February 2026.
+     *
+     * @param obbligation The obligation the submission belongs to.
+     * @return The deadline date, or null if obligation/period/fiscalYear are missing.
+     */
+    private LocalDate computeSubmissionDeadline(Obbligation obbligation) {
+        if (obbligation == null || obbligation.getPeriod() == null || obbligation.getFiscalYear() == null) {
+            return null;
+        }
+        int monthOrder = obbligation.getPeriod().getOrder();
+        int year = obbligation.getFiscalYear();
+        int nextMonth;
+        int nextYear;
+        if (monthOrder == 12) {
+            nextMonth = 1;
+            nextYear = year + 1;
+        } else {
+            nextMonth = monthOrder + 1;
+            nextYear = year;
+        }
+        return YearMonth.of(nextYear, nextMonth).atEndOfMonth();
     }
 
     @Override

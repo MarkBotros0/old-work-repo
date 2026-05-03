@@ -32,48 +32,53 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     @Query("""
               SELECT COUNT(t)
               FROM Transaction t
-              JOIN t.ingestion i
-              JOIN i.submission s
-              WHERE s.id = :submissionId
+              WHERE t.submission.id = :submissionId
             """)
     long countTransactionsBySubmission(@Param("submissionId") Long submissionId);
 
     @Query("""
              SELECT COUNT(t)
              FROM Transaction t
-             JOIN t.ingestion i
-             JOIN i.submission s
-             WHERE s.id IN :submissionIds
+             WHERE t.submission.id IN :submissionIds
             """)
     Long countTransactionsBySubmissionIds(@Param("submissionIds") List<Long> submissionIds);
 
     @Query("""
              SELECT COUNT(t)
              FROM Transaction t
-             JOIN t.ingestion i
-             JOIN i.submission s
-             WHERE s.id IN :submissionIds
+             WHERE t.submission.id IN :submissionIds
              AND t.tipoPag = :tipoPag
             """)
     Long countTransactionsByObligationAndTipoPag(
             @Param("submissionIds") List<Long> submissionIds,
             @Param("tipoPag") String tipoPag);
 
+    /**
+     * Counts transactions grouped by operation date for the given submissions.
+     * Uses direct submission FK for better index usage (fk_submission, dt_ope).
+     */
     @Query("""
-             select new it.deloitte.postrxade.records.TransactionDateCount(
-                 t.dtOpe,
-                 count(t)
-              )
-              from Transaction t
-              join t.ingestion i
-              join i.submission s
-              where s.id in :submissionIds
-              group by t.dtOpe
-              order by t.dtOpe
+             SELECT new it.deloitte.postrxade.records.TransactionDateCount(t.dtOpe, COUNT(t))
+             FROM Transaction t
+             WHERE t.submission.id IN :submissionIds
+             GROUP BY t.dtOpe
+             ORDER BY t.dtOpe
             """)
     List<TransactionDateCount> countTransactionsGroupedByDate(
             @Param("submissionIds") List<Long> submissionIds
     );
+
+    /**
+     * Single query: counts per payment type (tipo_pag) for the given submissions.
+     * Prefer this over multiple countTransactionsByObligationAndTipoPag calls to avoid N round-trips.
+     */
+    @Query("""
+             SELECT t.tipoPag, COUNT(t)
+             FROM Transaction t
+             WHERE t.submission.id IN :submissionIds
+             GROUP BY t.tipoPag
+            """)
+    List<Object[]> countTransactionsGroupedByTipoPag(@Param("submissionIds") List<Long> submissionIds);
 
     @Modifying
     @Transactional

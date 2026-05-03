@@ -2,8 +2,8 @@ package it.deloitte.postrxade.web.rest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.deloitte.postrxade.dto.LogDTO;
 import it.deloitte.postrxade.dto.AuditLogsSearchDTO;
+import it.deloitte.postrxade.dto.LogDTO;
 import it.deloitte.postrxade.enums.AuthIdProfilo;
 import it.deloitte.postrxade.security.RequireAuthorities;
 import it.deloitte.postrxade.service.AuditTrailService;

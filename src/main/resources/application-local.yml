@@ -48,6 +48,7 @@ spring:
     application:
         name: pos-trx-ade
 
+
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
         # MySQL AWS RDS Database for local development
@@ -58,16 +59,17 @@ spring:
         hikari:
             poolName: Hikari
             auto-commit: false
-            # Pool size configuration - same as dev for consistency
-            maximum-pool-size: 10
-            minimum-idle: 2
-            connection-timeout: 30000
-            idle-timeout: 120000
-            max-lifetime: 600000
+            # Pool size configuration - critical for batch processing
+            maximum-pool-size: 10  # Max connections (default is 10, but making it explicit)
+            minimum-idle: 2        # Reduced to allow more flexibility during high load
+            connection-timeout: 30000  # 30 seconds to wait for connection
+            idle-timeout: 120000   # 2 minutes before idle connection is removed
+            max-lifetime: 600000   # 10 minutes max lifetime (shorter to avoid stale connections)
             # Leak detection: 5 minutes for bulk operations (staging can take longer)
-            leak-detection-threshold: 300000
-            validation-timeout: 5000
-            keepalive-time: 60000
+            leak-detection-threshold: 300000  # Log warning if connection held > 1 minute
+            # Connection validation - CRITICAL for detecting dead connections
+            validation-timeout: 5000  # 5 seconds to validate a connection
+            keepalive-time: 60000  # Send keepalive every 60 seconds to prevent RDS timeout
             data-source-properties:
                 cachePrepStmts: true
                 prepStmtCacheSize: 250
@@ -117,33 +119,53 @@ spring:
         favicon:
             enabled: false
 
+    # OAuth2/OIDC: Nexi (oidc), Amex (oidc-amex), Deloitte SSO (oidc-deloitte). Vedi docs/env-and-deployment.md.
     security:
         oauth2:
             client:
                 provider:
+                    # Nexi - OIDC
                     oidc:
-                        authorization-uri: https://intapi.nexi.it/nexiauth/oauth/openid/v2/authorize
-                        token-uri: https://intapi.nexi.local:8443/nexiauth/oauth/openid/v2/token
-                        jwk-set-uri: https://intapi.nexi.local:8443/nexi/.well-known/jwks.json
+                        authorization-uri: ${NEXI_OIDC_AUTHORIZATION_URI:https://stgidp-digital.nexi.it/nexiauth/oauth/openid/v2/authorize}
+                        token-uri: ${NEXI_OIDC_TOKEN_URI:https://stgidp-digital.nexi.it/nexiauth/oauth/openid/v2/token}
+                        jwk-set-uri: ${NEXI_OIDC_JWK_SET_URI:https://stgidp-digital.nexi.it/nexi/.well-known/jwks.json}
+                    # Amex - OIDC
+                    oidc-amex:
+                        authorization-uri: ${AMEX_OIDC_AUTHORIZATION_URI:https://stgidp-digital.nexi.it/nexiauth/oauth/openid/v2/authorize}
+                        token-uri: ${AMEX_OIDC_TOKEN_URI:https://stgapigwiam02.private.nexicloud.it:8443/nexiauth/oauth/openid/v2/token}
+                        jwk-set-uri: ${AMEX_OIDC_JWK_SET_URI:https://stgapigwiam02.private.nexicloud.it:8443/nexi/.well-known/jwks.json}
+                    # Deloitte SSO - Entra ID
                     oidc-deloitte:
-                        authorization-uri: https://login.microsoftonline.com/160aa80d-a92c-48fe-b522-ed38be17fdda/oauth2/v2.0/authorize
-                        token-uri: https://login.microsoftonline.com/160aa80d-a92c-48fe-b522-ed38be17fdda/oauth2/v2.0/token
-                        jwk-set-uri: https://login.microsoftonline.com/160aa80d-a92c-48fe-b522-ed38be17fdda/discovery/v2.0/keys
+                        authorization-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:}/oauth2/v2.0/authorize
+                        token-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:}/oauth2/v2.0/token
+                        jwk-set-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:}/discovery/v2.0/keys
 
                 registration:
+                    # Nexi - OIDC
                     oidc:
-                        client-id: 09ac55d2-249f-4025-a2c0-7c9bbbf55d39
-                        client-secret: 2bb9962d-193a-4344-b795-5bd9e6d5ccb0
+                        provider: oidc
+                        client-id: ${NEXI_OIDC_CLIENT_ID:09ac55d2-249f-4025-a2c0-7c9bbbf55d39}
+                        client-secret: ${NEXI_OIDC_CLIENT_SECRET:2bb9962d-193a-4344-b795-5bd9e6d5ccb0}
                         scope: openid
-                        redirect-uri: http://localhost:8082/api/login/oauth2/code/oidc
+                        redirect-uri: ${BE_BASE_URL:http://localhost:8082}/api/login/oauth2/code/oidc
                         client-authentication-method: client_secret_post
                         authorization-grant-type: authorization_code
+                    # Amex - OIDC
+                    oidc-amex:
+                        provider: oidc-amex
+                        client-id: ${AMEX_OIDC_CLIENT_ID:f3097ec9-e32a-406c-86a7-fa50d14e48bc}
+                        client-secret: ${AMEX_OIDC_CLIENT_SECRET:02cfe5c2-43a2-4f51-a1ed-212267ad32cc}
+                        scope: openid
+                        redirect-uri: ${BE_BASE_URL:http://localhost:8082}/api/login/oauth2/code/oidc-amex
+                        client-authentication-method: client_secret_post
+                        authorization-grant-type: authorization_code
+                    # Deloitte SSO
                     oidc-deloitte:
                         provider: oidc-deloitte
-                        client-id: 3facb5c1-bd57-494d-80fd-bc41c86f112d
-                        client-secret: 0if8Q~uPAeu7yHdU155tBWAHmMgRYvciyXSDObQd
+                        client-id: ${DELOITTE_SSO_CLIENT_ID:3facb5c1-bd57-494d-80fd-bc41c86f112d}
+                        client-secret: ${DELOITTE_SSO_CLIENT_SECRET:0if8Q~uPAeu7yHdU155tBWAHmMgRYvciyXSDObQd}
                         scope: openid,profile
-                        redirect-uri: http://localhost:8082/api/login/oauth2/code/oidc-deloitte
+                        redirect-uri: ${BE_BASE_URL:http://localhost:8080}/api/login/oauth2/code/oidc-deloitte
                         client-authentication-method: post
                         authorization-grant-type: authorization_code
 
@@ -183,29 +205,30 @@ spring:
 
 # AWS S3 Configuration (uses IAM Role)
 aws:
-  region: eu-central-1
-  s3:
-    bucket-name: pos-euc-sbx
-    region: eu-central-1
-    output-folder: test-output
-    input-folder: test-input
-    input-folder-loaded: test-input-loaded
-  ecs:
-    enabled: false  # Disabled for local development
-    cluster-name: local-cluster
-    task-definition-output: local-output-task
-    container-name-output: output-generation
-    subnet-ids:
-    security-group-ids:
-    launch-type: FARGATE
-    # Optional: Override OUTPUT_ROWS_PER_FILE for ECS tasks (if not set, uses task definition default: 1000000)
-    output-rows-per-file: ${AWS_ECS_OUTPUT_ROWS_PER_FILE:}
-
-    # H2 Database for development (commented out)
-    # url: jdbc:h2:mem:posdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    # username: sa
-    # password: 
-    # driverClassName: org.h2.Driver
+    region: ${AWS_REGION:eu-central-1}
+    s3:
+        bucket-name: ${S3_BUCKET_NAME:}
+        region: ${S3_BUCKET_REGION:eu-central-1}
+        output-folder: ${S3_BUCKET_OUTPUT_FOLDER:}
+        input-folder: ${S3_BUCKET_INPUT_FOLDER:}
+        input-folder-loaded: ${S3_BUCKET_INPUT_FOLDER_LOADED:}
+    ecs:
+        enabled: ${AWS_ECS_ENABLED:true}
+        cluster-name: ${AWS_ECS_CLUSTER_NAME:}
+        task-definition-output: ${AWS_ECS_TASK_DEFINITION_OUTPUT:}
+        container-name-output: ${AWS_ECS_CONTAINER_NAME_OUTPUT:output-generation}
+        task-definition-response: ${AWS_ECS_TASK_DEFINITION_RESPONSE:}
+        container-name-response: ${AWS_ECS_CONTAINER_NAME_RESPONSE:response-processing}
+        subnet-ids: ${AWS_ECS_SUBNET_IDS:}
+        security-group-ids: ${AWS_ECS_SECURITY_GROUP_IDS:}
+        launch-type: ${AWS_ECS_LAUNCH_TYPE:FARGATE}
+        # Optional: Override OUTPUT_ROWS_PER_FILE for ECS tasks (if not set, uses task definition default: 1000000)
+        output-rows-per-file: ${AWS_ECS_OUTPUT_ROWS_PER_FILE:}
+        # H2 Database for development (commented out)
+        # url: jdbc:h2:mem:posdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        # username: sa
+        # password:
+        # driverClassName: org.h2.Driver
 
 springdoc:
     api-docs:
@@ -224,9 +247,12 @@ server:
     port: 8082
     servlet:
         session:
+            # SameSite=Lax: le API usano il Bearer token (JWT), non il cookie; il cookie di sessione
+            # non è inviato cross-origin, quindi Lax è sicuro e risolve il finding DAST/Snyk.
             cookie:
                 http-only: true
                 same-site: lax
+                secure: true
             timeout: 3600
 
 # ===================================================================
@@ -237,13 +263,16 @@ application:
         info-env: 'INT'
     # Ingestion configuration
     ingestion:
-        # Use staging tables for high-performance ETL ingestion
-        # Set to false to use legacy row-by-row approach for debugging
+        # Use staging tables for high-performance ETL ingestion (recommended for large files)
+        # Set to false to use legacy row-by-row approach
         use-staging: true
     http:
         header-name: ${spring.application.name}
     cors:
-        allowed-origins: 'http://localhost:8080,http://localhost:8082,http://localhost:3000,http://localhost:4200'
+        # Origini derivate dai tenant (https://{tenantId}.{baseDomain}, https://{tenantId}-be.{baseDomain}). Nessuna variabile per tenant.
+        tenant-base-domain: ${CORS_TENANT_BASE_DOMAIN:testpos-noprod.com}
+        # Opzionale: origini extra comma-separated (es. per override o domini non standard)
+        allowed-origins: ''
         allowed-methods: 'GET,POST,PUT,DELETE,OPTIONS'
         allowed-headers: '*'
         exposed-headers: 'Authorization,Link,X-Total-Count,X-${application.http.header-name}-alert,X-${application.http.header-name}-error,X-${application.http.header-name}-params'
@@ -253,8 +282,10 @@ application:
         tracing-request:
             enabled: true
     security:
+        # JWT emesso dall'app dopo login SSO: il FE lo invia come Bearer (evita cookie cross-origin).
+        # Secret: Base64 di almeno 32 bytes. In dev/prod usare variabile d'ambiente (es. APP_JWT_SECRET).
         app-jwt:
-            secret: dGVzdC1zZWNyZXQtYXBwLWp3dC0zMi1ieXRlcy1taW5pbXVtLWxlbg==
+            secret: ${APP_JWT_SECRET:dGVzdC1zZWNyZXQtYXBwLWp3dC0zMi1ieXRlcy1taW5pbXVtLWxlbg==}
             expiration-seconds: 3600
         lambda-token: "my-secret-test-token-123"
         xsfr:
@@ -263,14 +294,17 @@ application:
             # Durata cookie CSRF (template: 1 ora, persistente)
             cookie-max-age: 3600
 
-
 # Docker Compose disabled - using external MySQL database
 # Alternative: Set system property -Dspring.docker.compose.enabled=false
 
 # ===================================================================
-# Multi-Tenant Configuration (nexi = Nexi, amex = Amex). Vedi docs/env-and-deployment.md.
+# Multi-Tenant Configuration
+# Tenant nexi = Nexi, amex = Amex. Domini test: docs/env-and-deployment.md.
+# DB: stesso server (DB_HOST:DB_PORT), credenziali per tenant da variabili NEXI_DB_* / AMEX_DB_*.
 # ===================================================================
 multi-tenant:
+    # Dominio per riconoscere il tenant dall'host (es. nexi-be.xxx.com → nexi). In prod impostare CORS_TENANT_BASE_DOMAIN.
+    tenant-host-base-domain: ${CORS_TENANT_BASE_DOMAIN:testpos-noprod.com}
     bootstrap-tenant: nexi
     provider-display-names:
         oidc: Nexi
@@ -296,4 +330,22 @@ multi-tenant:
             sso:
                 providers:
                     - oidc-amex
+                    - oidc-deloitte
+        shift4:
+            database-name: ${SHIFT4_DB_NAME:shift4_posappdb}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${SHIFT4_DB_NAME:shift4_posappdb}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${SHIFT4_DB_USER:shift4_posappusr}
+            database-password: ${SHIFT4_DB_PASSWORD:}
+            output-codice-fiscale: "97920860158"
+            sso:
+                providers:
+                    - oidc-deloitte
+        barclaycard:
+            database-name: ${BARCLAYCARD_DB_NAME:barclaycard_posappdb}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${BARCLAYCARD_DB_NAME:barclaycard_posappdb}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${BARCLAYCARD_DB_USER:barclaycard_posappusr}
+            database-password: ${BARCLAYCARD_DB_PASSWORD:}
+            output-codice-fiscale: "00000000000"
+            sso:
+                providers:
                     - oidc-deloitte

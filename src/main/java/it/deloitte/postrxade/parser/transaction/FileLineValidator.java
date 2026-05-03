@@ -19,7 +19,10 @@ public class FileLineValidator {
     private static final Pattern ALL_INT_REGEX = Pattern.compile("^[0-9]+$");
     private static final Pattern THREE_LETTER_REGEX = Pattern.compile("^[A-Za-z]{3}$");
     private static final Pattern ALPHANUMERIC_REGEX = Pattern.compile("^[A-Za-z0-9]+$");
-
+    private static final Pattern OPTIONAL_ALPHANUMERIC_REGEX = Pattern.compile("^[A-Za-z0-9]*$");
+    private static final Pattern NON_WHITESPACE_REGEX = Pattern.compile("^\\S+$");
+    //SOME client may require id-esercente to be having dashes and letters. So added this pattern
+    private static final Pattern DASH_ALPHANUMERIC_REGEX = Pattern.compile("^[A-Za-z0-9-]+$");
     private static final String INVALID_FORMAT_ERROR_MSG = "%s '%s' does not match expected format '%s')";
     private static final String MANDATORY_DATA_IS_MISSING_ERROR_MSG = "%s '%s' does not match expected length (%d)";
     private static final String INVALID_VALUE_ERROR_MSG = "%s '%s' does not match expected value [ %s ]";
@@ -207,7 +210,7 @@ public class FileLineValidator {
         List<ErrorRecordCause> errors = new ArrayList<>();
         String fieldName = "ID-ESERCENTE";
         int expectedLength = 30;
-        Pattern exepectedPattern = ALPHANUMERIC_REGEX;
+        Pattern exepectedPattern = NON_WHITESPACE_REGEX;
 
         if (!exepectedPattern.matcher(idEsercente).matches()) {
             String errorDescription = String.format(INVALID_FORMAT_ERROR_MSG, fieldName, idEsercente, exepectedPattern.pattern());
@@ -224,7 +227,7 @@ public class FileLineValidator {
         List<ErrorRecordCause> errors = new ArrayList<>();
         String fieldName = "ID-POS";
         int expectedLength = 30;
-        Pattern exepectedPattern = ALL_INT_REGEX;
+        Pattern exepectedPattern = ALPHANUMERIC_REGEX;
 
         if (!exepectedPattern.matcher(terminalId).matches()) {
             String errorDescription = String.format(INVALID_FORMAT_ERROR_MSG, fieldName, terminalId, exepectedPattern.pattern());
@@ -262,7 +265,7 @@ public class FileLineValidator {
         List<ErrorRecordCause> errors = new ArrayList<>();
         String fieldName = "CHIAVE-BANCA";
         int expectedLength = 50;
-        Pattern exepectedPattern = ALPHANUMERIC_REGEX;
+        Pattern exepectedPattern = OPTIONAL_ALPHANUMERIC_REGEX;
 
         if (!exepectedPattern.matcher(chiaveBanca).matches()) {
             String errorDescription = String.format(INVALID_FORMAT_ERROR_MSG, fieldName, chiaveBanca, exepectedPattern.pattern());
@@ -369,16 +372,19 @@ public class FileLineValidator {
                         ingestionTypeMsg, tipoRecord));
             }
 
+            // Record count in footer is optional: if missing or not a number, skip validation and proceed
             String noOfRecordsStr = last.substring(1, 9).trim();
-            try {
-                int noOfRecords = Integer.parseInt(noOfRecordsStr);
-                if (totalRecordsCount != noOfRecords) {
-                    errors.add(String.format("%s Footer Record count mismatch: File says %d but found %d",
-                            ingestionTypeMsg, noOfRecords, totalRecordsCount));
+            if (!noOfRecordsStr.isEmpty()) {
+                try {
+                    int noOfRecords = Integer.parseInt(noOfRecordsStr);
+                    if (totalRecordsCount != noOfRecords) {
+                        errors.add(String.format("%s Footer Record count mismatch: File says %d but found %d",
+                                ingestionTypeMsg, noOfRecords, totalRecordsCount));
+                    }
+                } catch (NumberFormatException e) {
+                    errors.add(String.format("%s Footer record count is not a valid number: '%s'",
+                            ingestionTypeMsg, noOfRecordsStr));
                 }
-            } catch (NumberFormatException e) {
-                errors.add(String.format("%s Footer record count is not a valid number: '%s'",
-                        ingestionTypeMsg, noOfRecordsStr));
             }
 
 

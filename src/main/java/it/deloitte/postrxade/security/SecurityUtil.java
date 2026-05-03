@@ -25,7 +25,6 @@ public final class SecurityUtil {
 	private static final String LOGGER_MSG_END = "Fine";
 
 	private static final String ROLES_DELIMETER = " ";
-	private static final String ROLES_PREFIX = "ICS_";
 	private static final String PREFFER_USERNAME = "preferred_username";
 
 	// Claim keys for roles/authorities

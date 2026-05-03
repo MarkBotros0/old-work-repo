@@ -8,9 +8,11 @@ import it.deloitte.postrxade.entity.Submission;
 import it.deloitte.postrxade.entity.Transaction;
 import it.deloitte.postrxade.exception.NotFoundRecordException;
 import it.deloitte.postrxade.formatter.OutputFileFormatter;
+import it.deloitte.postrxade.enums.SubmissionStatusEnum;
 import it.deloitte.postrxade.repository.OutputRepository;
 import it.deloitte.postrxade.repository.ResolvedTransactionRepository;
 import it.deloitte.postrxade.repository.SubmissionRepository;
+import it.deloitte.postrxade.repository.SubmissionStatusRepository;
 import it.deloitte.postrxade.repository.TransactionRepository;
 import it.deloitte.postrxade.service.EcsTaskService;
 import it.deloitte.postrxade.service.OutputService;
@@ -52,6 +54,9 @@ public class OutputServiceImpl implements OutputService {
 
     @Autowired
     private SubmissionRepository submissionRepository;
+
+    @Autowired
+    private SubmissionStatusRepository submissionStatusRepository;
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -589,6 +594,16 @@ public class OutputServiceImpl implements OutputService {
 
         log.info("Output generation completed successfully for submissionId={}, {} file(s) generated and uploaded to S3", 
                 submissionId, filesGenerated);
+
+        // Al termine della generazione output, portare la submission da PROCESSING (5) a DELOITTE_REVIEW (6)
+        submissionStatusRepository.findOneByOrder(SubmissionStatusEnum.DELOITTE_REVIEW.getOrder())
+                .ifPresentOrElse(
+                        status -> transactionTemplate.executeWithoutResult(s -> {
+                            submissionRepository.updateStatus(submissionId, status);
+                            log.info("Submission {} status updated from PROCESSING (5) to DELOITTE_REVIEW (6) after output generation", submissionId);
+                        }),
+                        () -> log.warn("SubmissionStatus with order 6 (DELOITTE_REVIEW) not found; submission {} left in current status", submissionId)
+                );
     }
 
     @Override

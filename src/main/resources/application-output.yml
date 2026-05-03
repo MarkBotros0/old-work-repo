@@ -138,3 +138,5 @@ multi-tenant:
       output-codice-fiscale: "04107060966"
     amex:
       output-codice-fiscale: "14778691007"
+    shift4:
+      output-codice-fiscale: "97920860158"

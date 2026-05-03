@@ -9,4 +9,7 @@ import java.util.List;
 @Repository
 public interface OutputRepository extends JpaRepository<Output, Long> {
     List<Output> findBySubmissionId(Long submissionId);
+
+    /** Count output files for a submission (for Output File Breakdown). */
+    long countBySubmissionId(Long submissionId);
 }

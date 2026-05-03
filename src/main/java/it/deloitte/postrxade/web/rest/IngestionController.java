@@ -66,7 +66,7 @@ public class IngestionController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<Page<IngestionDTO>> getAllIngestionsPaginated(
-            @Parameter(description = "Pagination information") Pageable pageable) {
+            @Parameter(description = "Pagination information (page: 0-based index)") Pageable pageable) {
         Page<IngestionDTO> ingestions = ingestionService.getAllIngestions(pageable);
         return ResponseEntity.ok(ingestions);
     }

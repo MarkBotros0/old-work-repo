@@ -1,7 +1,7 @@
 package it.deloitte.postrxade.service.impl;
 
-import it.deloitte.postrxade.dto.LogDTO;
 import it.deloitte.postrxade.dto.AuditLogsSearchDTO;
+import it.deloitte.postrxade.dto.LogDTO;
 import it.deloitte.postrxade.entity.Log;
 import it.deloitte.postrxade.repository.LogRepository;
 import it.deloitte.postrxade.service.AuditTrailService;
@@ -34,7 +34,8 @@ import java.util.List;
 public class AuditTrailServiceImpl implements AuditTrailService {
 
     @Autowired
-    private @Qualifier("alternativeMapperFacade") MapperFacade alternativeMapperFacade;
+    @Qualifier("alternativeMapperFacade")
+    private MapperFacade alternativeMapperFacade;
 
     private final LogRepository logRepository;
 
@@ -51,36 +52,35 @@ public class AuditTrailServiceImpl implements AuditTrailService {
      * Retrieves a paginated list of audit logs.
      * <p>
      * Logic:
-     * 1. Extracts pagination (page number, size) and sorting details from the search DTO.
-     * 2. Constructs a Spring Data {@link Pageable} object using a utility helper.
-     * 3. Queries the database for the total count and the specific page of records.
-     * 4. Maps the resulting {@link Log} entities to {@link LogDTO}s for the frontend.
+     * 1. Extracts pagination and sorting from the search DTO.
+     * 2. Loads Log entities with associations eagerly (JOIN FETCH in repository) so that Orika
+     *    can map to LogDTO without triggering lazy load (no LazyInitializationException on later pages).
+     * 3. Maps {@link Log} to {@link LogDTO} via Orika.
      *
      * @param searchDTO The DTO containing pagination and sorting parameters.
-     * @return A {@link Page} containing the requested {@link LogDTO}s.
+     * @return A {@link Page} of {@link LogDTO}.
      */
     @Override
     public Page<LogDTO> getAuditLogs(AuditLogsSearchDTO searchDTO) {
-        // Extract pagination parameters
-        Integer page = searchDTO.getPage();
-        Integer size = searchDTO.getSize();
+        int pageSize = searchDTO.getSize() != null ? searchDTO.getSize() : 10;
+        int pageIndex = normalizePageIndex(searchDTO.getPage());
         List<SortItem> sortList = searchDTO.getSortList();
 
-        // 1. Get Total Count (for pagination UI)
         long count = logRepository.count();
-
-        // 2. Build Pageable Object
-        Pageable pageable = Utils.createPageableBasedOnPageAndSizeAndSorting(sortList, page, size);
-
-        // 3. Fetch Data
+        Pageable pageable = Utils.createPageableBasedOnPageAndSizeAndSorting(sortList, pageIndex, pageSize);
         Page<Log> recordsFromDb = logRepository.getAllLogsUsingPagination(pageable);
 
-        // 4. Map to DTOs
         List<LogDTO> logDTOList = new ArrayList<>(
                 alternativeMapperFacade.mapAsList(recordsFromDb.getContent(), LogDTO.class)
         );
-
-        // 5. Return Page
         return new PageImpl<>(logDTOList, pageable, count);
+    }
+
+    /**
+     * Normalizes page index for Spring Data (0-based). Contract: client sends 0-based (0 = first page).
+     * Only ensures non-null and non-negative.
+     */
+    private static int normalizePageIndex(Integer page) {
+        return (page == null || page < 0) ? 0 : page;
     }
 }

@@ -1,7 +1,7 @@
 package it.deloitte.postrxade.service;
 
-import it.deloitte.postrxade.dto.LogDTO;
 import it.deloitte.postrxade.dto.AuditLogsSearchDTO;
+import it.deloitte.postrxade.dto.LogDTO;
 import org.springframework.data.domain.Page;
 
 /**

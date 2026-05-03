@@ -55,6 +55,33 @@ public interface StagingIngestionService {
     StagingResult processTransactionFile(RemoteFile file, Ingestion ingestion, Submission submission, Obbligation obbligation) throws IOException;
 
     /**
+     * Load a transaction file into staging tables only (no set-based processing).
+     * <p>
+     * Use this when multiple transaction files belong to the same submission: load all of them
+     * into STG tables first, then call {@link #finalizeTransactionsFromStaging(Ingestion, Submission)}
+     * once to perform the set-based insert and error identification.
+     *
+     * @param file the remote file to process
+     * @param ingestion the ingestion entity
+     * @param submission the submission entity
+     * @param obbligation the obligation for date validation
+     * @return result containing counts for parsed/staged records and validation errors (no inserted/duplicates yet)
+     * @throws IOException if file reading fails
+     */
+    StagingResult loadTransactionFileToStaging(RemoteFile file, Ingestion ingestion, Submission submission, Obbligation obbligation) throws IOException;
+
+    /**
+     * Finalize transaction ingestion by performing set-based processing from staging tables.
+     * <p>
+     * This should be called once per submission after all related transaction files have been loaded into STG.
+     *
+     * @param ingestion the ingestion entity to associate with generated error records
+     * @param submission the submission entity
+     * @return result with counts of inserted, duplicates, missing merchants, and validation errors (validation errors are 0 here)
+     */
+    StagingResult finalizeTransactionsFromStaging(Ingestion ingestion, Submission submission);
+
+    /**
      * Process merchant records directly (already parsed and validated).
      *
      * @param merchants list of parsed merchant entities

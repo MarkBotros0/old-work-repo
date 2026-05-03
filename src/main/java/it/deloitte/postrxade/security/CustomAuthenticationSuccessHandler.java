@@ -3,6 +3,7 @@ package it.deloitte.postrxade.security;
 import it.deloitte.postrxade.tenant.TenantContext;
 import it.deloitte.postrxade.tenant.TenantConfiguration;
 import it.deloitte.postrxade.tenant.TenantResolver;
+import it.deloitte.postrxade.utils.ForwardedHostUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,10 +67,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 			return;
 		}
 
-		// 2) If the user is on a tenant-specific URL (e.g. nexi.testpos-noprod.com = Nexi), SSO tenant must match it.
-		// On non-tenant URLs (e.g. *.awsapprunner.com, localhost) tenantFromHost is null → we skip this check.
-		// Confronto con alias risolti: aziendaa↔nexi, aziendab↔amex così host aziendab + SSO amex è ok.
-		String host = request.getServerName();
+		// 2) If the user is on a tenant-specific URL (e.g. nexi-be.posdatareporting.deloitte.it = Nexi), SSO tenant must match it.
+		// On non-tenant URLs (e.g. *.awsapprunner.com) tenantFromHost is null → we skip this check.
+		// Host logico (X-Forwarded-Host quando dietro proxy) per match con dominio reale.
+		String host = ForwardedHostUtils.getHostFromRequest(request);
 		String tenantFromHost = tenantConfiguration.getTenantIdFromHost(host);
 		if (tenantFromHost == null) {
 			LOGGER.info("Login on non-tenant-specific host '{}': URL tenant check skipped, using SSO tenant: {}", host, resolvedTenant);
@@ -127,8 +128,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 	protected String determineTargetUrl(final HttpServletRequest request, final Authentication authentication) {
 		LOGGER.debug(LOGGER_MSG_BEGIN, this.hashCode());
 
-		// Redirect allo stesso tenant da cui è partito il login: host amex-be → FE amex (non nexi).
-		String host = request.getServerName();
+		// Redirect allo stesso tenant da cui è partito il login: host amex-be.xxx → FE amex.xxx (non nexi).
+		// Host logico (X-Forwarded-Host dietro proxy) così in prod si torna a nexi/amex.posdatareporting.deloitte.it.
+		String host = ForwardedHostUtils.getHostFromRequest(request);
 		String tenantFromHost = tenantConfiguration.getTenantIdFromHost(host);
 		if (tenantFromHost != null && tenantConfiguration.isTenantConfigured(tenantFromHost)) {
 			String scheme = forwardedProtoOrScheme(request);

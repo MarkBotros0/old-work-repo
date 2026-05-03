@@ -327,12 +327,13 @@ public class InsightsServiceImpl implements InsightsService {
                 PaymentTypeEnum.E_COMMERCE,
                 PaymentTypeEnum.POS);
 
+        // Single query: counts per tipo_pag (avoids N round-trips and uses index fk_submission + tipo_pag)
+        List<Object[]> countsByTipoPag = transactionRepository.countTransactionsGroupedByTipoPag(submissionIds);
         Map<String, Long> actualCounts = new HashMap<>();
-
-        for (PaymentTypeEnum type : chartTypes) {
-            Long transactionsCount = transactionRepository
-                    .countTransactionsByObligationAndTipoPag(submissionIds, type.getCode());
-            actualCounts.put(type.getCode(), transactionsCount);
+        for (Object[] row : countsByTipoPag) {
+            String tipoPag = (String) row[0];
+            Long count = (Long) row[1];
+            actualCounts.put(tipoPag, count);
         }
 
         long totalCount = actualCounts.values().stream().mapToLong(Long::longValue).sum();

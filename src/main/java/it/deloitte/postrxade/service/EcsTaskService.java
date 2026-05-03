@@ -13,4 +13,12 @@ public interface EcsTaskService {
      * @throws RuntimeException if task launch fails
      */
     String launchOutputGenerationTask(Long submissionId);
+
+    /**
+     * Launches an ECS task for response (.run) processing.
+     *
+     * @param submissionId the submission ID to process
+     * @return the task ARN if successful
+     */
+    String launchResponseProcessingTask(Long submissionId);
 }

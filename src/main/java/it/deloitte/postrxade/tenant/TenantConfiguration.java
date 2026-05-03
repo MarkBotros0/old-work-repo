@@ -19,13 +19,21 @@ import java.util.regex.Pattern;
 @ConfigurationProperties(prefix = "multi-tenant")
 public class TenantConfiguration {
 
-    /** Host pattern: nexi.testpos-noprod.com, amex-be.testpos-noprod.com, etc. */
-    private static final Pattern TENANT_HOST_PATTERN = Pattern.compile("^([a-z]+)(?:-be)?\\.testpos-noprod\\.com$");
-
     private static final Logger LOGGER = LoggerFactory.getLogger(TenantConfiguration.class);
+
+    /** Dominio base per host tenant (es. testpos-noprod.com o dominio prod). Da multi-tenant.tenant-host-base-domain / CORS_TENANT_BASE_DOMAIN. */
+    private String tenantHostBaseDomain = "testpos-noprod.com";
 
     /** Tenant used when no request context is available (e.g. startup, session schema init). */
     private String bootstrapTenant = "nexi";
+
+    public String getTenantHostBaseDomain() {
+        return tenantHostBaseDomain;
+    }
+
+    public void setTenantHostBaseDomain(String tenantHostBaseDomain) {
+        this.tenantHostBaseDomain = tenantHostBaseDomain != null && !tenantHostBaseDomain.isBlank() ? tenantHostBaseDomain : "testpos-noprod.com";
+    }
 
     /** Display name for each SSO provider id: oidc=Nexi, oidc-amex=Amex, oidc-deloitte=Deloitte. */
     private Map<String, String> providerDisplayNames = new HashMap<>();
@@ -65,7 +73,7 @@ public class TenantConfiguration {
     }
     
     /**
-     * Mappa alias tenant → id target (aziendaa→nexi, aziendab→amex).
+     * Mappa alias tenant → id target (aziendaa→nexi, aziendab→amex, aziendac→shift4).
      * <p>
      * <b>WORKAROUND TEMPORANEO</b>: in test gli URL sono ancora aziendab/aziendaa mentre JWT e config
      * usano amex/nexi. Questa mappa permette di far coincidere host (aziendab-be) con tenant_id (amex).
@@ -74,15 +82,16 @@ public class TenantConfiguration {
     public static String resolveTenantAlias(String tenantId) {
         if (tenantId == null) return null;
         return switch (tenantId.toLowerCase()) {
-            case "aziendaa" -> "nexi";
-            case "aziendab" -> "amex";
+            case "aziendaa", "azienda" -> "nexi";
+            case "aziendab", "aziendb" -> "amex";
+            case "aziendac", "aziendc" -> "shift4";
             default -> tenantId;
         };
     }
 
     /**
      * Gets the configuration for a specific tenant.
-     * Accetta anche i vecchi id (aziendaa→nexi, aziendab→amex) per retrocompatibilità con task ECS.
+     * Accetta anche i vecchi id (aziendaa→nexi, aziendab→amex, aziendac→shift4) per retrocompatibilità con task ECS.
      *
      * @param tenantId the tenant identifier
      * @return the tenant properties, or null if not found
@@ -106,7 +115,7 @@ public class TenantConfiguration {
     }
 
     /**
-     * Restituisce il bootstrap tenant normalizzato (aziendaa→nexi, aziendab→amex).
+     * Restituisce il bootstrap tenant normalizzato (aziendaa→nexi, aziendab→amex, aziendac→shift4).
      * Utile quando la task definition ECS ha ancora TENANT_ID=aziendaa.
      */
     public String getBootstrapTenantResolved() {
@@ -116,7 +125,8 @@ public class TenantConfiguration {
     
     /**
      * Derives the tenant identifier from the request host.
-     * Used to ensure SSO tenant matches the URL (e.g. nexi.testpos-noprod.com → Nexi tenant).
+     * Used to ensure SSO tenant matches the URL (e.g. nexi-be.testpos-noprod.com → nexi, nexi-be.dominio-prod.com → nexi).
+     * Il dominio base è configurabile con multi-tenant.tenant-host-base-domain (default e da CORS_TENANT_BASE_DOMAIN).
      *
      * @param host the request hostname
      * @return tenant id (nexi or amex), or null if host is not tenant-specific (e.g. App Runner URL)
@@ -125,7 +135,11 @@ public class TenantConfiguration {
         if (host == null || host.isEmpty()) {
             return null;
         }
-        Matcher matcher = TENANT_HOST_PATTERN.matcher(host.toLowerCase());
+        String domain = tenantHostBaseDomain != null && !tenantHostBaseDomain.isBlank() ? tenantHostBaseDomain : "testpos-noprod.com";
+        String escapedDomain = Pattern.quote(domain);
+        // Supporta tenant con lettere e cifre (es. shift4-be.testpos-noprod.com -> shift4).
+        Pattern pattern = Pattern.compile("^([a-z0-9]+)(?:-be)?\\." + escapedDomain + "$");
+        Matcher matcher = pattern.matcher(host.toLowerCase());
         if (matcher.matches()) {
             return matcher.group(1);
         }
@@ -140,9 +154,9 @@ public class TenantConfiguration {
 
     /**
      * Gets the list of SSO providers available for a tenant.
-     * Accetta anche i vecchi id (aziendaa→nexi, aziendab→amex) per retrocompatibilità con URL/host.
+     * Accetta anche i vecchi id (aziendaa→nexi, aziendab→amex, aziendac→shift4) per retrocompatibilità con URL/host.
      *
-     * @param tenantId the tenant identifier (from host or session, e.g. nexi, amex, aziendaa, aziendab)
+     * @param tenantId the tenant identifier (from host or session, e.g. nexi, amex, shift4, aziendaa, aziendab, aziendac)
      * @return list of SSO provider IDs, or empty list if tenant not found
      */
     public List<String> getSsoProvidersForTenant(String tenantId) {

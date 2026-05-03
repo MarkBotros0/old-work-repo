@@ -219,6 +219,22 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
 
     @Override
     public StagingResult processTransactionFile(RemoteFile file, Ingestion ingestion, Submission submission, Obbligation obbligation) throws IOException {
+        // Backward-compatible behavior for single-file ingestion: load to STG + finalize immediately.
+        // For multi-file submissions, prefer: loadTransactionFileToStaging(...) for each file,
+        // then finalizeTransactionsFromStaging(...) once.
+        StagingResult loadResult = loadTransactionFileToStaging(file, ingestion, submission, obbligation);
+        StagingResult finalizeResult = finalizeTransactionsFromStaging(ingestion, submission);
+        // Keep validationErrors from the load phase (finalize has 0 parsing validation errors by definition).
+        return new StagingResult(
+                finalizeResult.insertedCount(),
+                finalizeResult.duplicateCount(),
+                finalizeResult.missingMerchantCount(),
+                loadResult.errorCount()
+        );
+    }
+
+    @Override
+    public StagingResult loadTransactionFileToStaging(RemoteFile file, Ingestion ingestion, Submission submission, Obbligation obbligation) throws IOException {
         log.info("==========================================================");
         log.info("Starting TRUE STREAMING staging-based transaction ingestion");
         log.info("File: {}, Submission: {}", file.name(), submission.getId());
@@ -407,27 +423,43 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
                     lineCount, totalProcessed, expectedLineCount);
         }
 
+        long elapsed = System.currentTimeMillis() - startTime;
+        log.info("Completed transaction file load-to-staging in {}ms: parsed={}, validationErrors={}",
+                elapsed, totalParsed, totalValidationErrors);
+
+        // NOTE: This method DOES NOT perform set-based processing from staging.
+        // Use finalizeTransactionsFromStaging(...) once after all transaction files have been loaded.
+        return new StagingResult(0, 0, 0, totalValidationErrors);
+    }
+
+    @Override
+    public StagingResult finalizeTransactionsFromStaging(Ingestion ingestion, Submission submission) {
         // Phase 3: Set-based processing (duplicate detection, missing merchant, final insert)
-        log.info("Starting set-based processing from staging...");
+        log.info("Starting set-based processing from staging for submission {}...", submission.getId());
         long processStart = System.currentTimeMillis();
         StagingResult stagingResult = stagingRepository.processTransactionsFromStaging(submission.getId());
         log.info("Set-based processing completed in {}ms", System.currentTimeMillis() - processStart);
 
-        // Phase 4: Create ErrorRecords for DB duplicates and missing merchants
+        // Phase 4: Create ErrorRecords for DB duplicates, batch duplicates (within submission batch), and missing merchants
+        int missingCount = stagingResult.missingMerchantCount();
+        if (missingCount > 0) {
+            log.info("Phase 4: Creating error records for {} missing merchant transaction(s) (ERR1)...", missingCount);
+            int written = createErrorRecordsForMissingMerchantTransactionsChunk(ingestion, submission);
+            log.info("Phase 4: Wrote {} error records for missing merchants (ERR1) to ERROR_RECORD/ERROR_CAUSE", written);
+        }
         if (stagingResult.duplicateCount() > 0) {
-            createErrorRecordsForDuplicateTransactions(ingestion, submission);
-        }
-        if (stagingResult.missingMerchantCount() > 0) {
-            createErrorRecordsForMissingMerchantTransactions(ingestion, submission);
+            int batchDuplicateErrors = createErrorRecordsForBatchDuplicateTransactionsChunk(ingestion, submission);
+            int existingDuplicateErrors = createErrorRecordsForDuplicateTransactionsChunk(ingestion, submission);
+            log.info("Created {} batch duplicate + {} existing duplicate error records", batchDuplicateErrors, existingDuplicateErrors);
         }
 
-        long elapsed = System.currentTimeMillis() - startTime;
-        log.info("Completed transaction ingestion in {}ms: parsed={}, inserted={}, duplicates={}, missingMerchants={}, validationErrors={}", 
-                elapsed, totalParsed, stagingResult.insertedCount(), stagingResult.duplicateCount(), 
-                stagingResult.missingMerchantCount(), totalValidationErrors);
-
-        return new StagingResult(stagingResult.insertedCount(), stagingResult.duplicateCount(), 
-                stagingResult.missingMerchantCount(), totalValidationErrors);
+        // finalize stage doesn't add parsing validation errors (those are created during load phase)
+        return new StagingResult(
+                stagingResult.insertedCount(),
+                stagingResult.duplicateCount(),
+                stagingResult.missingMerchantCount(),
+                0
+        );
     }
 
     /**
@@ -670,26 +702,13 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
             List<Object[]> missingMerchantRecords = stagingRepository.getMissingMerchantTransactionDetailsChunk(
                     submission.getId(), minPk, maxPk);
             
+            // Do NOT stop after a few empty chunks: missing merchants can be concentrated in later
+            // pk ranges (e.g. end of file). We must scan until getMinPendingPk returns null.
             if (missingMerchantRecords.isEmpty()) {
-                // Try a few more chunks before stopping
-                boolean foundMore = false;
-                for (int i = 0; i < 3; i++) {
-                    Long nextMinPk = stagingRepository.getMinPendingPkForChunk(submission.getId(), maxPk);
-                    if (nextMinPk == null) break;
-                    Long nextMaxPk = nextMinPk + PROCESSING_CHUNK_SIZE;
-                    List<Object[]> nextChunk = stagingRepository.getMissingMerchantTransactionDetailsChunk(
-                            submission.getId(), nextMinPk, nextMaxPk);
-                    if (!nextChunk.isEmpty()) {
-                        foundMore = true;
-                        break;
-                    }
-                    maxPk = nextMaxPk;
-                }
-                if (!foundMore) {
-                    log.info("Stopping missing merchant error creation after {} chunks with no records", chunkNumber);
-                    break;
-                }
                 lastProcessedMaxPk = maxPk;
+                if (chunkNumber % 20 == 0) {
+                    log.debug("Chunk {}: no missing merchants in pk range [{}, {}), continuing...", chunkNumber, minPk, maxPk);
+                }
                 continue;
             }
             
@@ -711,6 +730,7 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
             }
             
             if (!errorRecords.isEmpty()) {
+                log.info("Writing {} missing merchant error records (ERR1) to ERROR_RECORD for chunk {}", errorRecords.size(), chunkNumber);
                 errorRecordRepository.bulkInsertRecordsWithCauses(errorRecords, ingestion.getId());
                 totalErrors += errorRecords.size();
             }
@@ -839,79 +859,39 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
 
     @Override
     public int createErrorRecordsForBatchDuplicateTransactionsChunk(Ingestion ingestion, Submission submission) {
-        log.info("Creating error records for batch duplicate transactions (same file) in chunks (no UPDATE on STG)...");
+        log.info("Creating error records for batch duplicate transactions (same file) (single query, then batch insert)...");
+        // Single query for all batch duplicates to run the heavy GROUP BY only once (no N×chunk scans).
+        List<Object[]> duplicateRecords = stagingRepository.getBatchDuplicateTransactionDetailsAll(submission.getId());
+        if (duplicateRecords.isEmpty()) {
+            log.info("No batch duplicate records to create error records for");
+            return 0;
+        }
+        final int INSERT_BATCH_SIZE = 5000;
         int totalErrors = 0;
-        Long lastProcessedMaxPk = null;
-        int chunkNumber = 0;
-        final int PROCESSING_CHUNK_SIZE = 100_000;
-        
-        while (true) {
-            Long minPk = stagingRepository.getMinPendingPkForChunk(submission.getId(), lastProcessedMaxPk);
-            if (minPk == null) {
-                log.info("No more records to process for batch duplicates after {} chunks", chunkNumber);
-                break;
-            }
-            
-            chunkNumber++;
-            Long maxPk = minPk + PROCESSING_CHUNK_SIZE;
-            
-            // Get batch duplicate records for this chunk (SELECT only, no UPDATE)
-            List<Object[]> duplicateRecords = stagingRepository.getBatchDuplicateTransactionDetailsChunk(
-                    submission.getId(), minPk, maxPk);
-            
-            if (duplicateRecords.isEmpty()) {
-                // Try a few more chunks before stopping
-                boolean foundMore = false;
-                for (int i = 0; i < 3; i++) {
-                    Long nextMinPk = stagingRepository.getMinPendingPkForChunk(submission.getId(), maxPk);
-                    if (nextMinPk == null) break;
-                    Long nextMaxPk = nextMinPk + PROCESSING_CHUNK_SIZE;
-                    List<Object[]> nextChunk = stagingRepository.getBatchDuplicateTransactionDetailsChunk(
-                            submission.getId(), nextMinPk, nextMaxPk);
-                    if (!nextChunk.isEmpty()) {
-                        foundMore = true;
-                        break;
-                    }
-                    maxPk = nextMaxPk;
+        List<ErrorRecord> batch = new ArrayList<>(INSERT_BATCH_SIZE);
+        for (Object[] row : duplicateRecords) {
+            String rawRow = row[0] != null ? String.valueOf(row[0]) : "";
+            String errorMessage = row[1] != null ? String.valueOf(row[1]) : "Duplicate within batch: same transaction appears multiple times in the file";
+            try {
+                ErrorRecord errorRecord = createErrorRecord(
+                        List.of(new ErrorRecordCause(errorMessage, ErrorTypeCode.TRANSACTION_ALREADY_EXISTS.getErrorCode())),
+                        rawRow, ingestion, submission
+                );
+                batch.add(errorRecord);
+                if (batch.size() >= INSERT_BATCH_SIZE) {
+                    errorRecordRepository.bulkInsertRecordsWithCauses(batch, ingestion.getId());
+                    totalErrors += batch.size();
+                    batch.clear();
                 }
-                if (!foundMore) {
-                    log.info("Stopping batch duplicate error creation after {} chunks with no records", chunkNumber);
-                    break;
-                }
-                lastProcessedMaxPk = maxPk;
-                continue;
-            }
-            
-            // Create ErrorRecords for this chunk
-            List<ErrorRecord> errorRecords = new ArrayList<>();
-            for (Object[] row : duplicateRecords) {
-                String rawRow = row[0] != null ? String.valueOf(row[0]) : "";
-                String errorMessage = row[1] != null ? String.valueOf(row[1]) : "Duplicate within batch: same transaction appears multiple times in the file";
-                
-                try {
-                    ErrorRecord errorRecord = createErrorRecord(
-                            List.of(new ErrorRecordCause(errorMessage, ErrorTypeCode.TRANSACTION_ALREADY_EXISTS.getErrorCode())),
-                            rawRow, ingestion, submission
-                    );
-                    errorRecords.add(errorRecord);
-                } catch (NotFoundRecordException e) {
-                    log.warn("Failed to create error record for batch duplicate transaction: {}", e.getMessage());
-                }
-            }
-            
-            if (!errorRecords.isEmpty()) {
-                errorRecordRepository.bulkInsertRecordsWithCauses(errorRecords, ingestion.getId());
-                totalErrors += errorRecords.size();
-            }
-            
-            lastProcessedMaxPk = maxPk;
-            
-            if (chunkNumber % 10 == 0) {
-                log.info("Processed {} chunks for batch duplicate errors, created {} so far", chunkNumber, totalErrors);
+            } catch (NotFoundRecordException e) {
+                log.warn("Failed to create error record for batch duplicate transaction: {}", e.getMessage());
             }
         }
-        
-        log.info("Created {} error records for batch duplicate transactions in {} chunks", totalErrors, chunkNumber);
+        if (!batch.isEmpty()) {
+            errorRecordRepository.bulkInsertRecordsWithCauses(batch, ingestion.getId());
+            totalErrors += batch.size();
+        }
+        log.info("Created {} error records for batch duplicate transactions", totalErrors);
         return totalErrors;
     }
 

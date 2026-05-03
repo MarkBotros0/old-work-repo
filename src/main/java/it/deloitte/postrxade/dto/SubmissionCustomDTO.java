@@ -19,6 +19,8 @@ public class SubmissionCustomDTO {
     private Long id;
     private SubmissionStatusDTO currentSubmissionStatus;
     private Integer ingestionsCount;
+    /** Number of output files generated for this submission. Used for Output File Breakdown (pending/submitted/closed). */
+    private Integer outputFilesCount;
     private List<ValidationDTO> validations;
     private LocalDate deadlineDate;
     private boolean isManual;

@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import it.deloitte.postrxade.utils.ForwardedHostUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -16,8 +17,9 @@ import java.io.IOException;
  * Filter that intercepts requests to /api/authorization/oidc and redirects
  * to the SSO selection page if the request doesn't contain OAuth2 parameters.
  * <p>
- * This allows users to see a selection page before being redirected to the
- * OAuth2 authorization server.
+ * The redirect URL uses the same host the client used to call the BE (X-Forwarded-Host
+ * when behind a proxy, else Host / getServerName()), so e.g. aziendab-be.testpos-noprod.com
+ * or amex-be.posdatareporting.deloitte.it.
  */
 @Component
 @Order(1)
@@ -48,17 +50,10 @@ public class SsoSelectionFilter extends OncePerRequestFilter {
             boolean isFromSsoSelection = queryString != null && queryString.contains("provider=oidc");
 
             if (!isOAuth2Request && !isFromSsoSelection) {
-                // This is a direct request to the authorization endpoint without OAuth2 parameters
-                // and not from the SSO selection page - redirect to the SSO selection page.
-                // Use absolute URL with correct scheme so behind a proxy we get https (X-Forwarded-Proto).
+                // Redirect to SSO selection page. Host = quello con cui il client ha chiamato il BE
+                // (X-Forwarded-Host dietro proxy, altrimenti Host / getServerName()).
                 String scheme = forwardedProtoOrScheme(request);
-                String host = request.getHeader("X-Forwarded-Host");
-                if (host == null || host.isBlank()) {
-                    host = request.getServerName();
-                    if (request.getServerPort() != 80 && request.getServerPort() != 443) {
-                        host = host + ":" + request.getServerPort();
-                    }
-                }
+                String host = ForwardedHostUtils.getHostFromRequest(request);
                 String redirectUrl = scheme + "://" + host + "/sso-select";
                 LOGGER.debug("Redirecting to SSO selection page: {}", redirectUrl);
                 response.sendRedirect(redirectUrl);

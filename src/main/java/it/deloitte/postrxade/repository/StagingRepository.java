@@ -149,6 +149,16 @@ public interface StagingRepository {
     List<Object[]> getBatchDuplicateTransactionDetailsChunk(Long submissionId, Long minPk, Long maxPk);
 
     /**
+     * Get all duplicate transactions within the same batch/file in one query (for ErrorRecord creation).
+     * Prefer this over chunked version to avoid running the heavy GROUP BY once per chunk.
+     * Returns: raw_row, error_message, pk_stg_transaction
+     *
+     * @param submissionId the submission ID
+     * @return list of Object[] with [raw_row, error_message, pk_stg_transaction]
+     */
+    List<Object[]> getBatchDuplicateTransactionDetailsAll(Long submissionId);
+
+    /**
      * Count pending records (process_status IS NULL) in staging tables for a submission.
      * Used to determine if ingestion can be resumed from staging.
      *

@@ -11,6 +11,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import it.deloitte.postrxade.utils.ForwardedHostUtils;
+
 import java.io.IOException;
 
 /**
@@ -44,7 +46,7 @@ public class TenantIdentificationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String host = request.getServerName();
+        String host = ForwardedHostUtils.getHostFromRequest(request);
         LOGGER.debug("Identifying tenant, host: {}", host);
 
         try {

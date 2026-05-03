@@ -149,13 +149,17 @@ public class TenantResolver {
         String tenantCode = role.substring(0, firstUnderscore).trim();
         if (tenantCode.isBlank()) return null;
         
-        // Map SSO tenant codes to internal tenant IDs (nomi veri: nexi, amex)
+        // Map SSO tenant codes to internal tenant IDs (nomi veri: nexi, amex, shift4, barclaycard)
         String tenantUpper = tenantCode.toUpperCase();
         switch (tenantUpper) {
             case "NEXI":
                 return "nexi";
             case "AMEX":
                 return "amex";
+            case "SFT4":
+                return "shift4";
+            case "BCYC":
+                return "barclaycard";
             default:
                 // Fallback: try lowercase match with configured tenants
                 return tenantCode.toLowerCase();

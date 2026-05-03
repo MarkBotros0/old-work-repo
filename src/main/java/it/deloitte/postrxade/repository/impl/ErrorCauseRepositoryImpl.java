@@ -82,18 +82,16 @@ public class ErrorCauseRepositoryImpl implements ErrorCauseRepositoryCustom {
         long startTime = System.currentTimeMillis();
         log.debug("Starting countDistinctErrorRecordsBySubmissionIdAndSeverityNative for submissionId={}, severity={}", submissionId, severity);
         
-        // OPTIMIZED: Use subquery to filter ERROR_TYPE first, then join with ERROR_RECORD
-        // This reduces the dataset before the DISTINCT operation
+        // OPTIMIZED: Count directly on ERROR_CAUSE using fk_submission and fk_error_record.
+        // This avoids joining the (potentially huge) ERROR_RECORD table for submission-level counts.
+        // With an index on ERROR_CAUSE(fk_submission, fk_error_type, fk_error_record) MySQL can
+        // filter by submission quickly and compute DISTINCT on the indexed fk_error_record.
         String nativeSql = """
-            SELECT COUNT(DISTINCT er.pk_error_record)
-            FROM ERROR_RECORD er
-            INNER JOIN ERROR_CAUSE ec ON ec.fk_error_record = er.pk_error_record
-            INNER JOIN (
-                SELECT pk_error_type 
-                FROM ERROR_TYPE 
-                WHERE serverity_level = :severity
-            ) et ON ec.fk_error_type = et.pk_error_type
-            WHERE er.fk_submission = :submissionId
+            SELECT COUNT(DISTINCT ec.fk_error_record)
+            FROM ERROR_CAUSE ec
+            INNER JOIN ERROR_TYPE et ON et.pk_error_type = ec.fk_error_type
+            WHERE ec.fk_submission = :submissionId
+              AND et.serverity_level = :severity
             """;
         
         Query query = entityManager.createNativeQuery(nativeSql);
@@ -116,24 +114,20 @@ public class ErrorCauseRepositoryImpl implements ErrorCauseRepositoryCustom {
         long startTime = System.currentTimeMillis();
         log.debug("Starting findErrorTypeCountsBySubmissionIdAndSeverityNative for submissionId={}, severity={}", submissionId, severity);
         
-        // OPTIMIZED: Filter ERROR_TYPE first, then join with ERROR_RECORD filtered by submission
-        // This reduces the dataset before GROUP BY and DISTINCT operations
+        // OPTIMIZED: Group directly from ERROR_CAUSE filtered by submission and severity.
+        // We count distinct fk_error_record per error type (not number of causes) which matches the UI semantics.
         String nativeSql = """
             SELECT 
                 et.pk_error_type AS errorTypeId,
                 et.name AS errorTypeName,
                 et.error_code AS errorCode,
-                COUNT(DISTINCT er.pk_error_record) AS count
-            FROM ERROR_RECORD er
-            INNER JOIN ERROR_CAUSE ec ON ec.fk_error_record = er.pk_error_record
-            INNER JOIN (
-                SELECT pk_error_type, name, error_code
-                FROM ERROR_TYPE 
-                WHERE serverity_level = :severity
-            ) et ON ec.fk_error_type = et.pk_error_type
-            WHERE er.fk_submission = :submissionId
+                COUNT(DISTINCT ec.fk_error_record) AS count
+            FROM ERROR_CAUSE ec
+            INNER JOIN ERROR_TYPE et ON et.pk_error_type = ec.fk_error_type
+            WHERE ec.fk_submission = :submissionId
+              AND et.serverity_level = :severity
             GROUP BY et.pk_error_type, et.name, et.error_code
-            ORDER BY COUNT(DISTINCT er.pk_error_record) DESC
+            ORDER BY COUNT(DISTINCT ec.fk_error_record) DESC
             """;
         
         Query query = entityManager.createNativeQuery(nativeSql);

@@ -122,3 +122,9 @@ multi-tenant:
             database-username: ${DB_USERNAME:posappusr}
             database-password: ${DB_PASSWORD:}
             output-codice-fiscale: "14778691007"
+        shift4:
+            database-name: ${DB_NAME:shift4_posappdb}
+            database-url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:shift4_posappdb}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&autoReconnect=true&failOverReadOnly=false&maxReconnects=3&connectTimeout=30000&socketTimeout=900000&trustServerCertificate=true
+            database-username: ${DB_USERNAME:shift4_posappusr}
+            database-password: ${DB_PASSWORD:}
+            output-codice-fiscale: "97920860158"

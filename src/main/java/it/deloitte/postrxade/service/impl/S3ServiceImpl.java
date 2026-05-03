@@ -314,9 +314,14 @@ public class S3ServiceImpl implements S3Service {
 
         List<S3Object> s3Objects = listObjects(s3InputFolder);
 
+        // Normalize loaded folder prefix to exclude files already moved to INPUT/LOADED
+        // (listObjects with prefix "NEXI/INPUT" returns also "NEXI/INPUT/LOADED/..." - we must ignore those)
+        String loadedPrefix = s3InputFolderLoaded != null ? s3InputFolderLoaded.replaceAll("/$", "").trim() : "";
+
         List<String> keys = s3Objects.stream()
                 .map(S3Object::key)
                 .filter(key -> !key.equals(s3InputFolder) && !key.endsWith("/"))
+                .filter(key -> loadedPrefix.isEmpty() || !key.equals(loadedPrefix) && !key.startsWith(loadedPrefix + "/"))
                 .collect(Collectors.toList());
 
         if (keys.isEmpty()) {
@@ -324,7 +329,7 @@ public class S3ServiceImpl implements S3Service {
             throw new NotFoundRecordException("No files found in S3 input folder: " + s3InputFolder);
         }
 
-        log.debug("Found {} file key(s) to process", keys.size());
+        log.debug("Found {} file key(s) to process (excluding {} folder)", keys.size(), loadedPrefix);
         return keys;
     }
 

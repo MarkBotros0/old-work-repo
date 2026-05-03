@@ -67,8 +67,7 @@ spring:
 
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        # MySQL AWS RDS Database for local development db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com
-        url: jdbc:mariadb://db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com:3306/posappdb?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&autoReconnect=true&connectTimeout=10000&socketTimeout=300000&trustServerCertificate=true
+        url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:3306/posappdb?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&autoReconnect=true&connectTimeout=10000&socketTimeout=300000&trustServerCertificate=true
         username: posappusr
         password: GNEMOBY
         driverClassName: org.mariadb.jdbc.Driver
@@ -140,46 +139,46 @@ spring:
         oauth2:
             client:
                 provider:
-                    # Nexi - OIDC (fallback: vecchie AZIENDAA_* per migrazione)
+                    # Nexi - OIDC
                     oidc:
-                        authorization-uri: ${NEXI_OIDC_AUTHORIZATION_URI:${AZIENDAA_OIDC_AUTHORIZATION_URI:https://intapi.nexi.it/ics/nexiauth/openid/authorize}}
-                        token-uri: ${NEXI_OIDC_TOKEN_URI:${AZIENDAA_OIDC_TOKEN_URI:https://intapi.nexi.it/ics/nexiauth/openid/token}}
-                        jwk-set-uri: ${NEXI_OIDC_JWK_SET_URI:${AZIENDAA_OIDC_JWK_SET_URI:https://intapi.nexi.it/nexi/.well-known/jwks.json}}
-                    # Amex - OIDC (fallback: AZIENDAB_*)
+                        authorization-uri: ${NEXI_OIDC_AUTHORIZATION_URI:https://intapi.nexi.it/ics/nexiauth/openid/authorize}
+                        token-uri: ${NEXI_OIDC_TOKEN_URI:https://intapi.nexi.it/ics/nexiauth/openid/token}
+                        jwk-set-uri: ${NEXI_OIDC_JWK_SET_URI:https://intapi.nexi.it/nexi/.well-known/jwks.json}
+                    # Amex - OIDC
                     oidc-amex:
-                        authorization-uri: ${AMEX_OIDC_AUTHORIZATION_URI:${AZIENDAB_OIDC_AUTHORIZATION_URI:}}
-                        token-uri: ${AMEX_OIDC_TOKEN_URI:${AZIENDAB_OIDC_TOKEN_URI:}}
-                        jwk-set-uri: ${AMEX_OIDC_JWK_SET_URI:${AZIENDAB_OIDC_JWK_SET_URI:}}
-                    # Deloitte SSO - Entra ID (fallback: AZURE_*)
+                        authorization-uri: ${AMEX_OIDC_AUTHORIZATION_URI:}
+                        token-uri: ${AMEX_OIDC_TOKEN_URI:}
+                        jwk-set-uri: ${AMEX_OIDC_JWK_SET_URI:}
+                    # Deloitte SSO - Entra ID
                     oidc-deloitte:
-                        authorization-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:${AZURE_TENANT_ID:}}/oauth2/v2.0/authorize
-                        token-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:${AZURE_TENANT_ID:}}/oauth2/v2.0/token
-                        jwk-set-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:${AZURE_TENANT_ID:}}/discovery/v2.0/keys
+                        authorization-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:}/oauth2/v2.0/authorize
+                        token-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:}/oauth2/v2.0/token
+                        jwk-set-uri: https://login.microsoftonline.com/${DELOITTE_SSO_TENANT_ID:}/discovery/v2.0/keys
 
                 registration:
-                    # Nexi - OIDC (fallback: AZIENDAA_*)
+                    # Nexi - OIDC
                     oidc:
                         provider: oidc
-                        client-id: ${NEXI_OIDC_CLIENT_ID:${AZIENDAA_OIDC_CLIENT_ID:ccb6b077-3d4f-448e-91c5-b8e504fe3a09}}
-                        client-secret: ${NEXI_OIDC_CLIENT_SECRET:${AZIENDAA_OIDC_CLIENT_SECRET:a44f5504-7544-4bcf-9ba3-415454dcdc56}}
+                        client-id: ${NEXI_OIDC_CLIENT_ID:ccb6b077-3d4f-448e-91c5-b8e504fe3a09}
+                        client-secret: ${NEXI_OIDC_CLIENT_SECRET:a44f5504-7544-4bcf-9ba3-415454dcdc56}
                         scope: openid,profile
                         redirect-uri: ${BE_BASE_URL:http://localhost:8080}/api/login/oauth2/code/oidc
                         client-authentication-method: client_secret_post
                         authorization-grant-type: authorization_code
-                    # Amex - OIDC (fallback: AZIENDAB_*)
+                    # Amex - OIDC
                     oidc-amex:
                         provider: oidc-amex
-                        client-id: ${AMEX_OIDC_CLIENT_ID:${AZIENDAB_OIDC_CLIENT_ID:}}
-                        client-secret: ${AMEX_OIDC_CLIENT_SECRET:${AZIENDAB_OIDC_CLIENT_SECRET:}}
+                        client-id: ${AMEX_OIDC_CLIENT_ID:}
+                        client-secret: ${AMEX_OIDC_CLIENT_SECRET:}
                         scope: openid,profile
                         redirect-uri: ${BE_BASE_URL:http://localhost:8080}/api/login/oauth2/code/oidc-amex
                         client-authentication-method: client_secret_post
                         authorization-grant-type: authorization_code
-                    # Deloitte SSO (fallback: AZURE_*)
+                    # Deloitte SSO
                     oidc-deloitte:
                         provider: oidc-deloitte
-                        client-id: ${DELOITTE_SSO_CLIENT_ID:${AZURE_CLIENT_ID:}}
-                        client-secret: ${DELOITTE_SSO_CLIENT_SECRET:${AZURE_CLIENT_SECRET:}}
+                        client-id: ${DELOITTE_SSO_CLIENT_ID:}
+                        client-secret: ${DELOITTE_SSO_CLIENT_SECRET:}
                         scope: openid,profile
                         redirect-uri: ${BE_BASE_URL:http://localhost:8080}/api/login/oauth2/code/oidc-deloitte
                         client-authentication-method: post
@@ -317,6 +316,8 @@ application:
 # DB: stesso server (DB_HOST:DB_PORT), credenziali per tenant da variabili NEXI_DB_* / AMEX_DB_*.
 # ===================================================================
 multi-tenant:
+    # Dominio per riconoscere il tenant dall'host (es. nexi-be.xxx.com → nexi). In prod impostare CORS_TENANT_BASE_DOMAIN.
+    tenant-host-base-domain: ${CORS_TENANT_BASE_DOMAIN:testpos-noprod.com}
     bootstrap-tenant: nexi
     provider-display-names:
         oidc: Nexi
@@ -324,22 +325,40 @@ multi-tenant:
         oidc-deloitte: Deloitte
     tenants:
         nexi:
-            database-name: ${NEXI_DB_NAME:${AZIENDAA_DB_NAME:posappdb}}
-            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${NEXI_DB_NAME:${AZIENDAA_DB_NAME:posappdb}}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
-            database-username: ${NEXI_DB_USER:${AZIENDAA_DB_USER:posappusr}}
-            database-password: ${NEXI_DB_PASSWORD:${AZIENDAA_DB_PASSWORD:GNEMOBY}}
+            database-name: ${NEXI_DB_NAME:posappdb}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${NEXI_DB_NAME:posappdb}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${NEXI_DB_USER:posappusr}
+            database-password: ${NEXI_DB_PASSWORD:GNEMOBY}
             output-codice-fiscale: "04107060966"
             sso:
                 providers:
                     - oidc
                     - oidc-deloitte
         amex:
-            database-name: ${AMEX_DB_NAME:${AZIENDAB_DB_NAME:aziendab_posappdb}}
-            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${AMEX_DB_NAME:${AZIENDAB_DB_NAME:aziendab_posappdb}}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
-            database-username: ${AMEX_DB_USER:${AZIENDAB_DB_USER:aziendab_posappusr}}
-            database-password: ${AMEX_DB_PASSWORD:${AZIENDAB_DB_PASSWORD:GNEMOBY}}
+            database-name: ${AMEX_DB_NAME:aziendab_posappdb}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${AMEX_DB_NAME:aziendab_posappdb}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${AMEX_DB_USER:aziendab_posappusr}
+            database-password: ${AMEX_DB_PASSWORD:GNEMOBY}
             output-codice-fiscale: "14778691007"
             sso:
                 providers:
                     - oidc-amex
+                    - oidc-deloitte
+        shift4:
+            database-name: ${SHIFT4_DB_NAME:shift4_posappdb}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${SHIFT4_DB_NAME:shift4_posappdb}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${SHIFT4_DB_USER:shift4_posappusr}
+            database-password: ${SHIFT4_DB_PASSWORD:}
+            output-codice-fiscale: "97920860158"
+            sso:
+                providers:
+                    - oidc-deloitte
+        barclaycard:
+            database-name: ${BARCLAYCARD_DB_NAME:barclaycard_posappdb}
+            database-url: jdbc:mariadb://${DB_HOST:db-pos-nprod.c1ocgkekaqhr.eu-central-1.rds.amazonaws.com}:${DB_PORT:3306}/${BARCLAYCARD_DB_NAME:barclaycard_posappdb}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&trustServerCertificate=true
+            database-username: ${BARCLAYCARD_DB_USER:barclaycard_posappusr}
+            database-password: ${BARCLAYCARD_DB_PASSWORD:}
+            output-codice-fiscale: "00000000000"
+            sso:
+                providers:
                     - oidc-deloitte

@@ -4,11 +4,15 @@ import it.deloitte.postrxade.entity.Output;
 import it.deloitte.postrxade.entity.ResolvedTransaction;
 import it.deloitte.postrxade.entity.Submission;
 import it.deloitte.postrxade.entity.Transaction;
+import it.deloitte.postrxade.enums.SubmissionStatusEnum;
 import it.deloitte.postrxade.exception.NotFoundRecordException;
 import it.deloitte.postrxade.formatter.OutputFileFormatter;
+import it.deloitte.postrxade.repository.OutputTransactionLineMapEntry;
+import it.deloitte.postrxade.repository.OutputTransactionLineMapRepository;
 import it.deloitte.postrxade.repository.OutputRepository;
 import it.deloitte.postrxade.repository.ResolvedTransactionRepository;
 import it.deloitte.postrxade.repository.SubmissionRepository;
+import it.deloitte.postrxade.repository.SubmissionStatusRepository;
 import it.deloitte.postrxade.repository.TransactionRepository;
 import it.deloitte.postrxade.service.EcsTaskService;
 import it.deloitte.postrxade.service.OutputService;
@@ -68,6 +72,9 @@ public class OutputServiceImplLazy implements OutputService {
     private SubmissionRepository submissionRepository;
 
     @Autowired
+    private SubmissionStatusRepository submissionStatusRepository;
+
+    @Autowired
     private TransactionRepository transactionRepository;
 
     @Autowired
@@ -75,6 +82,9 @@ public class OutputServiceImplLazy implements OutputService {
 
     @Autowired
     private S3Service s3Service;
+
+    @Autowired
+    private OutputTransactionLineMapRepository outputTransactionLineMapRepository;
 
     @Autowired(required = false)
     private TenantConfiguration tenantConfiguration;
@@ -194,7 +204,8 @@ public class OutputServiceImplLazy implements OutputService {
         Long resolvedCount = resolvedTransactionRepository.countByCurrentSubmissionIdAndNullOutput(submissionId);
         
         if ((transactionCount == null || transactionCount == 0) && (resolvedCount == null || resolvedCount == 0)) {
-            log.info("No transactions to process for submissionId={}", submissionId);
+            log.info("No transactions to process for submissionId={}. Updating status to DELOITTE_REVIEW (6).", submissionId);
+            moveSubmissionToDeloitteReview(submissionId);
             return;
         }
 
@@ -226,6 +237,20 @@ public class OutputServiceImplLazy implements OutputService {
 
         log.info("LAZY output generation completed successfully for submissionId={}, {} file(s) generated and uploaded to S3", 
                 submissionId, filesGenerated);
+
+        moveSubmissionToDeloitteReview(submissionId);
+    }
+
+    /** Porta la submission da PROCESSING (5) a DELOITTE_REVIEW (6) al termine della generazione output. */
+    private void moveSubmissionToDeloitteReview(Long submissionId) {
+        submissionStatusRepository.findOneByOrder(SubmissionStatusEnum.DELOITTE_REVIEW.getOrder())
+                .ifPresentOrElse(
+                        status -> transactionTemplate.executeWithoutResult(s -> {
+                            submissionRepository.updateStatus(submissionId, status);
+                            log.info("Submission {} status updated from PROCESSING (5) to DELOITTE_REVIEW (6) after output generation", submissionId);
+                        }),
+                        () -> log.warn("SubmissionStatus with order 6 (DELOITTE_REVIEW) not found; submission {} left in current status", submissionId)
+                );
     }
 
     /** Codice fiscale per header/footer output: da tenant (Nexi 04107060966, Amex 14778691007). */
@@ -253,6 +278,7 @@ public class OutputServiceImplLazy implements OutputService {
         int recordsInCurrentFile = 0;
         Output currentOutput = null;
         List<Long> transactionIdsWritten = new ArrayList<>();
+        List<OutputTransactionLineMapEntry> transactionLineEntriesWritten = new ArrayList<>();
         ByteArrayOutputStream currentFileBaos = null;
         BufferedWriter currentFileBw = null;
 
@@ -344,7 +370,13 @@ public class OutputServiceImplLazy implements OutputService {
                     
                     // Update remaining fk_output
                     if (!transactionIdsWritten.isEmpty()) {
-                        updateFkOutputInBatches(transactionIdsWritten, currentOutput.getId(), isResolvedTransaction);
+                        updateFkOutputAndLineMapInBatches(
+                                transactionIdsWritten,
+                                transactionLineEntriesWritten,
+                                currentOutput.getId(),
+                                isResolvedTransaction
+                        );
+                        transactionLineEntriesWritten.clear();
                     }
                 }
                 break;
@@ -369,8 +401,11 @@ public class OutputServiceImplLazy implements OutputService {
                         transactionIdsWritten.add(((ResolvedTransaction) t).getId());
                         lastWrittenTransaction = t;
                     } else {
+                        int dataRowNum = recordsInCurrentFile + 1; // Header excluded: first data row is 1
                         currentFileBw.write(OutputFileFormatter.toOutputFileString((Transaction) t, codiceFiscale));
-                        transactionIdsWritten.add(((Transaction) t).getId());
+                        Long transactionId = ((Transaction) t).getId();
+                        transactionIdsWritten.add(transactionId);
+                        transactionLineEntriesWritten.add(new OutputTransactionLineMapEntry(transactionId, dataRowNum));
                         lastWrittenTransaction = t;
                     }
                     recordsInCurrentFile++;
@@ -396,8 +431,14 @@ public class OutputServiceImplLazy implements OutputService {
                 
                 // Update fk_output for records written to this file
                 if (!transactionIdsWritten.isEmpty()) {
-                    updateFkOutputInBatches(transactionIdsWritten, currentOutput.getId(), isResolvedTransaction);
+                    updateFkOutputAndLineMapInBatches(
+                            transactionIdsWritten,
+                            transactionLineEntriesWritten,
+                            currentOutput.getId(),
+                            isResolvedTransaction
+                    );
                     transactionIdsWritten.clear();
+                    transactionLineEntriesWritten.clear();
                 }
                 
                 // CRITICAL: Update cursor to last written transaction
@@ -429,8 +470,14 @@ public class OutputServiceImplLazy implements OutputService {
 
             // Update fk_output incrementally (if not at limit)
             if (!limitReached && transactionIdsWritten.size() >= FK_UPDATE_BATCH_SIZE && currentOutput != null) {
-                updateFkOutputInBatches(transactionIdsWritten, currentOutput.getId(), isResolvedTransaction);
+                updateFkOutputAndLineMapInBatches(
+                        transactionIdsWritten,
+                        transactionLineEntriesWritten,
+                        currentOutput.getId(),
+                        isResolvedTransaction
+                );
                 transactionIdsWritten.clear();
+                transactionLineEntriesWritten.clear();
             }
 
             // Update cursor with last written transaction (or last in batch if all written)
@@ -477,7 +524,10 @@ public class OutputServiceImplLazy implements OutputService {
     /**
      * Update fk_output in small batches to avoid timeout
      */
-    private void updateFkOutputInBatches(List<Long> transactionIds, Long outputId, boolean isResolved) {
+    private void updateFkOutputAndLineMapInBatches(List<Long> transactionIds,
+                                                   List<OutputTransactionLineMapEntry> lineEntries,
+                                                   Long outputId,
+                                                   boolean isResolved) {
         if (transactionIds == null || transactionIds.isEmpty()) {
             return;
         }
@@ -488,13 +538,20 @@ public class OutputServiceImplLazy implements OutputService {
         for (int i = 0; i < transactionIds.size(); i += UPDATE_BATCH_SIZE) {
             int endIndex = Math.min(i + UPDATE_BATCH_SIZE, transactionIds.size());
             List<Long> batch = transactionIds.subList(i, endIndex);
+            List<OutputTransactionLineMapEntry> lineBatch = (!isResolved && lineEntries != null && !lineEntries.isEmpty())
+                    ? lineEntries.subList(i, endIndex)
+                    : Collections.emptyList();
 
             TransactionTemplate batchTemplate = createBatchTransactionTemplate(600);
             batchTemplate.execute(status -> {
                 if (isResolved) {
                     return resolvedTransactionRepository.updateOutputForeignKeyOptimized(batch, outputId);
                 } else {
-                    return transactionRepository.updateOutputForeignKeyOptimized(batch, outputId);
+                    int updatedRows = transactionRepository.updateOutputForeignKeyOptimized(batch, outputId);
+                    if (!lineBatch.isEmpty()) {
+                        outputTransactionLineMapRepository.bulkInsert(outputId, lineBatch);
+                    }
+                    return updatedRows;
                 }
             });
         }

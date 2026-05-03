@@ -1620,6 +1620,10 @@ public class StagingRepositoryImpl implements StagingRepository {
     @Override
     @Transactional(readOnly = true)
     public List<Object[]> getBatchDuplicateTransactionDetailsChunk(Long submissionId, Long minPk, Long maxPk) {
+        // Prefer getBatchDuplicateTransactionDetailsAll() for normal flow (runs heavy GROUP BY once).
+        // This chunked method is correct but runs the full dups subquery per chunk; use only if
+        // you need chunked reads (e.g. memory-constrained). Dups subquery must NOT filter by
+        // minPk/maxPk or groups spanning chunk boundaries would be missed.
         @SuppressWarnings("unchecked")
         List<Object[]> results = entityManager.createNativeQuery("""
                 SELECT stg.raw_row, 
@@ -1634,9 +1638,7 @@ public class StagingRepositoryImpl implements StagingRepository {
                     SELECT id_esercente, chiave_banca, id_pos, tipo_ope, dt_ope, divisa_ope, tipo_pag,
                            MIN(pk_stg_transaction) as first_pk
                     FROM STG_TRANSACTION
-                    WHERE fk_submission = :submissionId 
-                      AND pk_stg_transaction >= :minPk
-                      AND pk_stg_transaction < :maxPk
+                    WHERE fk_submission = :submissionId
                     GROUP BY id_esercente, chiave_banca, id_pos, tipo_ope, dt_ope, divisa_ope, tipo_pag
                     HAVING COUNT(*) > 1
                 ) dups 
@@ -1656,6 +1658,45 @@ public class StagingRepositoryImpl implements StagingRepository {
                 .setParameter("submissionId", submissionId)
                 .setParameter("minPk", minPk)
                 .setParameter("maxPk", maxPk)
+                .getResultList();
+        return results != null ? results : new ArrayList<>();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> getBatchDuplicateTransactionDetailsAll(Long submissionId) {
+        // Single query for all batch duplicates - use this instead of chunked version to run the
+        // heavy GROUP BY only once (no performance impact from N chunk scans).
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = entityManager.createNativeQuery("""
+                SELECT stg.raw_row, 
+                       'Duplicate within batch: same transaction appears multiple times in the file' as error_message,
+                       stg.pk_stg_transaction
+                FROM STG_TRANSACTION stg
+                INNER JOIN STG_MERCHANT m_stg 
+                    ON stg.id_esercente = m_stg.id_esercente 
+                    AND stg.id_intermediario = m_stg.id_intermediario
+                    AND m_stg.fk_submission = stg.fk_submission
+                INNER JOIN (
+                    SELECT id_esercente, chiave_banca, id_pos, tipo_ope, dt_ope, divisa_ope, tipo_pag,
+                           MIN(pk_stg_transaction) as first_pk
+                    FROM STG_TRANSACTION
+                    WHERE fk_submission = :submissionId
+                    GROUP BY id_esercente, chiave_banca, id_pos, tipo_ope, dt_ope, divisa_ope, tipo_pag
+                    HAVING COUNT(*) > 1
+                ) dups 
+                    ON stg.id_esercente = dups.id_esercente 
+                    AND stg.chiave_banca = dups.chiave_banca
+                    AND stg.id_pos = dups.id_pos
+                    AND stg.tipo_ope = dups.tipo_ope
+                    AND stg.dt_ope = dups.dt_ope
+                    AND stg.divisa_ope = dups.divisa_ope
+                    AND stg.tipo_pag = dups.tipo_pag
+                    AND stg.pk_stg_transaction > dups.first_pk
+                WHERE stg.fk_submission = :submissionId
+                ORDER BY stg.pk_stg_transaction ASC
+                """)
+                .setParameter("submissionId", submissionId)
                 .getResultList();
         return results != null ? results : new ArrayList<>();
     }

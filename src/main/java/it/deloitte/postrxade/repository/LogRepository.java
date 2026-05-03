@@ -13,8 +13,11 @@ public interface LogRepository extends JpaRepository<Log,Integer> {
 
     @Query(
             value = """
-            select log from Log log
+            select distinct log from Log log
+            left join fetch log.updater
+            left join fetch log.beforeSubmissionStatus
+            left join fetch log.afterSubmissionStatus
             """
     )
-    Page<Log> getAllLogsUsingPagination( Pageable pageable);
+    Page<Log> getAllLogsUsingPagination(Pageable pageable);
 }

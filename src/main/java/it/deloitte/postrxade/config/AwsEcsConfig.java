@@ -23,10 +23,10 @@ import software.amazon.awssdk.services.ecs.EcsClient;
  * 3. IAM Role (when running on EC2/ECS/App Runner)
  * <p>
  * This configuration is only loaded in the main application (dev/local/prod profiles),
- * NOT in batch or output profiles, as those ECS tasks don't need to launch other tasks.
+ * NOT in batch, output or response profiles, as those ECS tasks don't need to launch other tasks.
  */
 @Configuration
-@Profile("!batch & !output")  // Exclude batch and output profiles - they don't need to launch ECS tasks
+@Profile("!batch & !output & !response")
 public class AwsEcsConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AwsEcsConfig.class);

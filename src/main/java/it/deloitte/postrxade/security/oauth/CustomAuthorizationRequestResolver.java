@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 
+import it.deloitte.postrxade.utils.ForwardedHostUtils;
+
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -32,7 +34,6 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
 	public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
 		LOGGER.debug(LOGGER_MSG_BEGIN, this.hashCode());
-		// this.defaultAuthorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
 		this.defaultAuthorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/api/authorization");
 		LOGGER.debug(LOGGER_MSG_END);
 	}
@@ -81,9 +82,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 	}
 
 	private static final String X_FORWARDED_PROTO = "X-Forwarded-Proto";
-	private static final String X_FORWARDED_HOST = "X-Forwarded-Host";
 	private static final String X_FORWARDED_PORT = "X-Forwarded-Port";
-	private static final String HEADER_HOST = "Host";
 
 	/**
 	 * Costruisce la redirect URI usata nella richiesta OAuth2 authorize.
@@ -104,7 +103,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 	 */
 	private static String buildRedirectUriFromRequest(HttpServletRequest request, String clientRegistrationId) {
 		String scheme = forwardedProtoOrScheme(request);
-		String host = hostForRedirectUri(request);
+		String host = ForwardedHostUtils.getHostFromRequest(request);
 		int port = forwardedPortOrServerPort(request);
 		// Non mostrare mai la porta se è 80 o 443 (evita :80 su https quando il proxy manda port=80)
 		boolean omitPort = (port == 80 || port == 443);
@@ -120,26 +119,6 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 			return proto.strip().toLowerCase();
 		}
 		return request.getScheme();
-	}
-
-	/**
-	 * Host da usare per la redirect_uri. Ordine: Host (invio browser) → X-Forwarded-Host → getServerName().
-	 * Così da aziendab si invia redirect_uri con aziendab anche se il proxy imposta X-Forwarded-Host su aziendaa.
-	 */
-	private static String hostForRedirectUri(HttpServletRequest request) {
-		String host = request.getHeader(HEADER_HOST);
-		if (host != null && !host.isBlank()) {
-			String h = host.strip();
-			int colon = h.indexOf(':');
-			return colon > 0 ? h.substring(0, colon).trim() : h;
-		}
-		host = request.getHeader(X_FORWARDED_HOST);
-		if (host != null && !host.isBlank()) {
-			String h = host.strip();
-			int colon = h.indexOf(':');
-			return colon > 0 ? h.substring(0, colon) : h;
-		}
-		return request.getServerName();
 	}
 
 	private static int forwardedPortOrServerPort(HttpServletRequest request) {
