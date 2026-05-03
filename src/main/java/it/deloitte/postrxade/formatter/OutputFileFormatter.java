@@ -3,6 +3,7 @@ package it.deloitte.postrxade.formatter;
 import it.deloitte.postrxade.entity.Merchant;
 import it.deloitte.postrxade.entity.ResolvedTransaction;
 import it.deloitte.postrxade.entity.Transaction;
+import it.deloitte.postrxade.enums.CountryNumericCodeEnum;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -12,6 +13,8 @@ import java.time.format.DateTimeFormatter;
 public final class OutputFileFormatter {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy");
     private static String os = System.getProperty("os.name").toLowerCase();
+
+    private static final String AMEX_INTERMEDIARIO_MARKER = "36019";
 
     /** @param codiceFiscale codice fiscale per tenant (es. Nexi 04107060966, Amex 14778691007) */
     public static String createHeader(String codiceFiscale) {
@@ -101,7 +104,7 @@ public final class OutputFileFormatter {
         String currency = transaction.getDivisaOpe();
         sb.append(currency);
 
-        sb.append(rightPad(nullSafe(transaction.getIdEsercente()), 30, ' '));
+        sb.append(rightPad(resolveIdEsercente(transaction.getIdIntermediario(), transaction.getIdEsercente()), 30, ' '));
 
         sb.append(rightPad(nullSafe(transaction.getIdPos()), 30, ' '));
 
@@ -153,7 +156,7 @@ public final class OutputFileFormatter {
         String currency = transaction.getDivisaOpe();
         sb.append(currency);
 
-        sb.append(rightPad(nullSafe(transaction.getIdEsercente()), 30, ' '));
+        sb.append(rightPad(resolveIdEsercente(transaction.getIdIntermediario(), transaction.getIdEsercente()), 30, ' '));
 
         sb.append(rightPad(nullSafe(transaction.getIdPos()), 30, ' '));
 
@@ -179,6 +182,19 @@ public final class OutputFileFormatter {
 
     private static String nullSafe(String value) {
         return value != null ? value : "";
+    }
+
+    private static String resolveIdEsercente(String idIntermediario, String idEsercente) {
+        String value = nullSafe(idEsercente);
+        if (idIntermediario != null
+                && idIntermediario.contains(AMEX_INTERMEDIARIO_MARKER)
+                && value.length() == 13) {
+            String suffix = value.substring(value.length() - 3);
+            if (CountryNumericCodeEnum.isValidNumericCode(suffix)) {
+                value = value.substring(0, value.length() - 3);
+            }
+        }
+        return value;
     }
 
     private static String leftPad(String value, int length, char padChar) {
