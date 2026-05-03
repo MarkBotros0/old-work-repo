@@ -187,8 +187,8 @@ public final class OutputFileFormatter {
     private static String resolveIdEsercente(String idIntermediario, String idEsercente) {
         String value = nullSafe(idEsercente);
         if (idIntermediario != null
-                && idIntermediario.replaceFirst("^0+", "").equals(AMEX_INTERMEDIARIO_MARKER)) {
-            String stripped = value.replaceFirst("^0+", "");
+                && idIntermediario.replaceFirst("^0", "").equals(AMEX_INTERMEDIARIO_MARKER)) {
+            String stripped = value.replaceFirst("^0", "");
             if (stripped.length() == 13) {
                 String suffix = stripped.substring(stripped.length() - 3);
                 if (CountryNumericCodeEnum.isValidNumericCode(suffix)) {

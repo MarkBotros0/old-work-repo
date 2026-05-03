@@ -94,6 +94,8 @@ public class ValidationServiceImpl implements ValidationService {
     @org.springframework.beans.factory.annotation.Value("${aws.s3.output-folder:OUTPUT}")
     private String s3OutputFolder;
 
+    private static final String NEXI_INTERMEDIARIO_MARKER = "32875";
+
     /**
      * Self-injection per permettere a Spring di intercettare le chiamate @Async.
      * Questo è necessario perché @Async funziona solo quando il metodo viene chiamato
@@ -400,7 +402,7 @@ public class ValidationServiceImpl implements ValidationService {
                     headerFont.setBold(true);
                     headerStyle.setFont(headerFont);
                     
-                    String[] headers = {"raw_record", "error_level", "error_name", "error_description", "batch_id", "timestamp", "file_type"};
+                    String[] headers = {"raw_record", "error_level", "error_name", "error_description", "batch_id", "timestamp", "file_type", "country"};
                     
                     // Helper method to create header row
                     java.util.function.Consumer<Sheet> createHeader = (sheet) -> {
@@ -505,6 +507,7 @@ public class ValidationServiceImpl implements ValidationService {
                             excelRow.createCell(4).setCellValue(batchId != null ? batchId : "");
                             excelRow.createCell(5).setCellValue(timestamp);
                             excelRow.createCell(6).setCellValue(ingestionTypeName != null ? ingestionTypeName : "");
+                            excelRow.createCell(7).setCellValue(resolveCountryForNexi(rawRow));
                             
                             if ("error".equals(type)) {
                                 totalErrors++;
@@ -615,6 +618,30 @@ public class ValidationServiceImpl implements ValidationService {
                 .timestamp(String.valueOf(ingestion.getIngestedAt()))
                 .fileType(ingestion.getIngestionType().getName())
                 .build();
+    }
+
+    /**
+     * Resolves the country marker for the Nexi-only "country" column in the validation report.
+     * Returns DENMARK when idEsercente trimmed length is 7, GERMANY when 9, "" otherwise.
+     * Applies only when the row's idIntermediario (positions 1-12 of raw_row, optional single
+     * leading zero) equals "32875". Both anagrafe and transato share these slice offsets.
+     */
+    private String resolveCountryForNexi(String rawRow) {
+        if (rawRow == null || rawRow.length() < 12) {
+            return "";
+        }
+        String intermediario = rawRow.substring(1, Math.min(rawRow.length(), 12)).trim();
+        if (!intermediario.replaceFirst("^0", "").equals(NEXI_INTERMEDIARIO_MARKER)) {
+            return "";
+        }
+        String idEsercente = rawRow.length() > 12
+                ? rawRow.substring(12, Math.min(rawRow.length(), 42)).trim()
+                : "";
+        return switch (idEsercente.length()) {
+            case 7 -> "DENMARK";
+            case 9 -> "GERMANY";
+            default -> "";
+        };
     }
 
     /**
