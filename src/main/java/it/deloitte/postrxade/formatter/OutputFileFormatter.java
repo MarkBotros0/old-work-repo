@@ -187,11 +187,14 @@ public final class OutputFileFormatter {
     private static String resolveIdEsercente(String idIntermediario, String idEsercente) {
         String value = nullSafe(idEsercente);
         if (idIntermediario != null
-                && idIntermediario.contains(AMEX_INTERMEDIARIO_MARKER)
-                && value.length() == 13) {
-            String suffix = value.substring(value.length() - 3);
-            if (CountryNumericCodeEnum.isValidNumericCode(suffix)) {
-                value = value.substring(0, value.length() - 3);
+                && idIntermediario.replaceFirst("^0+", "").equals(AMEX_INTERMEDIARIO_MARKER)) {
+            String stripped = value.replaceFirst("^0+", "");
+            if (stripped.length() == 13) {
+                String suffix = stripped.substring(stripped.length() - 3);
+                if (CountryNumericCodeEnum.isValidNumericCode(suffix)) {
+                    return stripped.substring(0, stripped.length() - 3);
+                }
+                return stripped;
             }
         }
         return value;
