@@ -1,0 +1,401 @@
+timestamp,message
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'io.micrometer.stackdriver.StackdriverMeterRegistry' (OnClassCondition)
+1777986163045,   StartupEndpointAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,"         - ApplicationStartup configured applicationStartup is of type class org.springframework.core.metrics.DefaultApplicationStartup, expected BufferingApplicationStartup. (StartupEndpointAutoConfiguration.ApplicationStartupCondition)"
+1777986163045,   StatsdMetricsExportAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'io.micrometer.statsd.StatsdMeterRegistry' (OnClassCondition)
+1777986163045,   SwaggerConfig:
+1777986163045,      Did not match:
+1777986163045,         - not a servlet web application (OnWebApplicationCondition)
+1777986163045,   SwaggerUiConfigProperties:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnBean (types: org.springdoc.core.configuration.SpringDocConfiguration; SearchStrategy: all) did not find any beans of type org.springdoc.core.configuration.SpringDocConfiguration (OnBeanCondition)
+1777986163045,      Matched:
+1777986163045,         - @ConditionalOnProperty (springdoc.swagger-ui.enabled) matched (OnPropertyCondition)
+1777986163045,   SwaggerUiOAuthProperties:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnBean (types: org.springdoc.core.configuration.SpringDocConfiguration; SearchStrategy: all) did not find any beans of type org.springdoc.core.configuration.SpringDocConfiguration (OnBeanCondition)
+1777986163045,      Matched:
+1777986163045,         - @ConditionalOnProperty (springdoc.swagger-ui.enabled) matched (OnPropertyCondition)
+1777986163045,   TaskExecutorConfigurations.SimpleAsyncTaskExecutorBuilderConfiguration#simpleAsyncTaskExecutorBuilderVirtualThreads:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder; SearchStrategy: all) found beans of type 'org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder' simpleAsyncTaskExecutorBuilder (OnBeanCondition)
+1777986163045,   TaskExecutorConfigurations.TaskExecutorConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - AnyNestedCondition 0 matched 2 did not; NestedCondition on TaskExecutorConfigurations.OnExecutorCondition.ModelCondition @ConditionalOnProperty (spring.task.execution.mode=force) did not find property 'spring.task.execution.mode'; NestedCondition on TaskExecutorConfigurations.OnExecutorCondition.ExecutorBeanCondition @ConditionalOnMissingBean (types: java.util.concurrent.Executor; SearchStrategy: all) found beans of type 'java.util.concurrent.Executor' taskExecutor (TaskExecutorConfigurations.OnExecutorCondition)
+1777986163045,   TaskSchedulingConfigurations.SimpleAsyncTaskSchedulerBuilderConfiguration#simpleAsyncTaskSchedulerBuilderVirtualThreads:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder; SearchStrategy: all) found beans of type 'org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder' simpleAsyncTaskSchedulerBuilder (OnBeanCondition)
+1777986163045,   TaskSchedulingConfigurations.TaskSchedulerConfiguration#taskSchedulerVirtualThreads:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnThreading did not find VIRTUAL (OnThreadingCondition)
+1777986163045,   TemplateEngineConfigurations.ReactiveTemplateEngineConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - did not find reactive web application classes (OnWebApplicationCondition)
+1777986163045,   ThreadDumpEndpointAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnAvailableEndpoint not exposed (OnAvailableEndpointCondition)
+1777986163045,   ThymeleafAutoConfiguration.DataAttributeDialectConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'com.github.mxab.thymeleaf.extras.dataattribute.dialect.DataAttributeDialect' (OnClassCondition)
+1777986163045,   ThymeleafAutoConfiguration.ThymeleafWebFluxConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - did not find reactive web application classes (OnWebApplicationCondition)
+1777986163045,   ThymeleafAutoConfiguration.ThymeleafWebLayoutConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect' (OnClassCondition)
+1777986163045,   ThymeleafAutoConfiguration.ThymeleafWebMvcConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - not a servlet web application (OnWebApplicationCondition)
+1777986163045,   TomcatMetricsAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnWebApplication (required) not a servlet web application and did not find reactive web application classes (OnWebApplicationCondition)
+1777986163045,      Matched:
+1777986163045,"         - @ConditionalOnClass found required classes 'io.micrometer.core.instrument.binder.tomcat.TomcatMetrics', 'org.apache.catalina.Manager' (OnClassCondition)"
+1777986163045,   TransactionAutoConfiguration#transactionalOperator:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnSingleCandidate (types: org.springframework.transaction.ReactiveTransactionManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+1777986163045,   TransactionAutoConfiguration.AspectJTransactionManagementConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnBean (types: org.springframework.transaction.aspectj.AbstractTransactionAspect; SearchStrategy: all) did not find any beans of type org.springframework.transaction.aspectj.AbstractTransactionAspect (OnBeanCondition)
+1777986163045,   TransactionAutoConfiguration.EnableTransactionManagementConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnMissingBean (types: org.springframework.transaction.annotation.AbstractTransactionManagementConfiguration; SearchStrategy: all) found beans of type 'org.springframework.transaction.annotation.AbstractTransactionManagementConfiguration' org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration (OnBeanCondition)
+1777986163045,   TransactionAutoConfiguration.EnableTransactionManagementConfiguration.CglibAutoProxyConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - Ancestor org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration$EnableTransactionManagementConfiguration did not match (ConditionEvaluationReport.AncestorsMatchedCondition)
+1777986163045,      Matched:
+1777986163045,         - @ConditionalOnBooleanProperty (spring.aop.proxy-target-class=true) matched (OnPropertyCondition)
+1777986163045,   TransactionAutoConfiguration.EnableTransactionManagementConfiguration.JdkDynamicAutoProxyConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnBooleanProperty (spring.aop.proxy-target-class=false) did not find property 'spring.aop.proxy-target-class' (OnPropertyCondition)
+1777986163045,         - Ancestor org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration$EnableTransactionManagementConfiguration did not match (ConditionEvaluationReport.AncestorsMatchedCondition)
+1777986163045,   UserDetailsServiceAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - not a servlet web application (OnWebApplicationCondition)
+1777986163045,      Matched:
+1777986163045,         - @ConditionalOnClass found required class 'org.springframework.security.authentication.AuthenticationManager' (OnClassCondition)
+1777986163045,   WavefrontAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'com.wavefront.sdk.common.application.ApplicationTags' (OnClassCondition)
+1777986163045,   WavefrontMetricsExportAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'com.wavefront.sdk.common.WavefrontSender' (OnClassCondition)
+1777986163045,   WavefrontTracingAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'com.wavefront.sdk.common.WavefrontSender' (OnClassCondition)
+1777986163045,   WebClientAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.function.client.WebClient' (OnClassCondition)
+1777986163045,   WebClientObservationConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.function.client.WebClient' (OnClassCondition)
+1777986163045,   WebEndpointAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnWebApplication (required) not a servlet web application and did not find reactive web application classes (OnWebApplicationCondition)
+1777986163045,   WebFluxAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.config.WebFluxConfigurer' (OnClassCondition)
+1777986163045,   WebFluxObservationAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+1777986163045,   WebMvcAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - not a servlet web application (OnWebApplicationCondition)
+1777986163045,      Matched:
+1777986163045,"         - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'org.springframework.web.servlet.DispatcherServlet', 'org.springframework.web.servlet.config.annotation.WebMvcConfigurer' (OnClassCondition)"
+1777986163045,   WebMvcObservationAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - not a servlet web application (OnWebApplicationCondition)
+1777986163045,      Matched:
+1777986163045,"         - @ConditionalOnClass found required classes 'org.springframework.web.servlet.DispatcherServlet', 'io.micrometer.observation.Observation' (OnClassCondition)"
+1777986163045,   WebServiceTemplateAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'org.springframework.oxm.Marshaller' (OnClassCondition)
+1777986163045,   WebServicesAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'org.springframework.ws.transport.http.MessageDispatcherServlet' (OnClassCondition)
+1777986163045,   WebSessionIdResolverAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'reactor.core.publisher.Mono' (OnClassCondition)
+1777986163045,   WebSocketMessagingAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer' (OnClassCondition)
+1777986163045,   WebSocketReactiveAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+1777986163045,   WebSocketServletAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - not a servlet web application (OnWebApplicationCondition)
+1777986163045,      Matched:
+1777986163045,"         - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'jakarta.websocket.server.ServerContainer' (OnClassCondition)"
+1777986163045,   XADataSourceAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnBean (types: org.springframework.boot.jdbc.XADataSourceWrapper; SearchStrategy: all) did not find any beans of type org.springframework.boot.jdbc.XADataSourceWrapper (OnBeanCondition)
+1777986163045,      Matched:
+1777986163045,"         - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'jakarta.transaction.TransactionManager', 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType' (OnClassCondition)"
+1777986163045,   ZipkinAutoConfiguration:
+1777986163045,      Did not match:
+1777986163045,         - @ConditionalOnClass did not find required class 'zipkin2.reporter.Encoding' (OnClassCondition)
+1777986163045,Exclusions:
+1777986163045,'"-----------"
+1777986163045,    org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration
+1777986163045,    org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration
+1777986163045,Unconditional classes:
+1777986163045,'"----------------------"
+1777986163045,    org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration
+1777986163045,    org.springframework.boot.actuate.autoconfigure.availability.AvailabilityHealthContributorAutoConfiguration
+1777986163045,    org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration
+1777986163045,    org.springframework.boot.actuate.autoconfigure.info.InfoContributorAutoConfiguration
+1777986163045,    org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration
+1777986163045,    org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration
+1777986163045,    org.springframework.boot.actuate.autoconfigure.metrics.integration.IntegrationMetricsAutoConfiguration
+1777986163045,    org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration
+1777986163045,    org.springframework.boot.actuate.autoconfigure.web.server.ManagementContextAutoConfiguration
+1777986163045,    org.springframework.boot.actuate.autoconfigure.health.HealthContributorAutoConfiguration
+1777986163045,    org.springdoc.core.configuration.SpringDocSpecPropertiesConfiguration
+1777986163045,    org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration
+1777986163045,    org.springframework.boot.autoconfigure.info.ProjectInfoAutoConfiguration
+1777986163045,]
+1777986163047,"[2026-05-05 13:02:43,047][INFO ][main][it.deloitte.postrxade.PosTrxAdeApp::logStarted][Started PosTrxAdeApp in 8.084 seconds (process running for 8.661)]"
+1777986163048,"[2026-05-05 13:02:43,048][DEBUG][main][org.springframework.boot.availability.ApplicationAvailabilityBean::onApplicationEvent][Application availability state LivenessState changed to CORRECT]"
+1777986163051,"[2026-05-05 13:02:43,051][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][Batch run tenant: nexi]"
+1777986163051,"[2026-05-05 13:02:43,051][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][==========================================================]"
+1777986163051,"[2026-05-05 13:02:43,051][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][   ECS BATCH INGESTION STARTING]"
+1777986163051,"[2026-05-05 13:02:43,051][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][==========================================================]"
+1777986163052,"[2026-05-05 13:02:43,051][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][Start time: 2026-05-05T13:02:43.051621043Z]"
+1777986163052,"[2026-05-05 13:02:43,052][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][Starting file ingestion from S3...]"
+1777986163052,"[2026-05-05 13:02:43,052][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::listObjects][Listing objects in S3 bucket: pos-noprod-bucket-sftp with prefix: NEXI/INPUT]"
+1777986163481,"[2026-05-05 13:02:43,481][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::listObjects][Found 6 objects in S3 bucket with prefix: NEXI/INPUT]"
+1777986163482,"[2026-05-05 13:02:43,482][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][Fetched 3 file(s) from bucket: [NEXI/INPUT/TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt, NEXI/INPUT/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.eot, NEXI/INPUT/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt]]"
+1777986163490,"[2026-05-05 13:02:43,490][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986163533,"[2026-05-05 13:02:43,533][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986163543,"[2026-05-05 13:02:43,543][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163543,"[2026-05-05 13:02:43,543][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(1446131359<open>)] for JPA transaction]"
+1777986163543,"[2026-05-05 13:02:43,543][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@7bb98540]]"
+1777986163570,"[2026-05-05 13:02:43,570][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163570,"[2026-05-05 13:02:43,570][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(1446131359<open>)]]"
+1777986163576,"[2026-05-05 13:02:43,576][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(1446131359<open>)] after transaction]"
+1777986163577,"[2026-05-05 13:02:43,576][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986163583,"[2026-05-05 13:02:43,583][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986163586,"[2026-05-05 13:02:43,586][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::hasActiveSubmission][hasActiveSubmission for obligation id=39: 0 active submission(s) found]"
+1777986163586,"[2026-05-05 13:02:43,586][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][hasActiveSubmission check result: false for obligation id=39, fiscalYear=2028, period=January]"
+1777986163587,"[2026-05-05 13:02:43,587][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986163595,"[2026-05-05 13:02:43,595][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163595,"[2026-05-05 13:02:43,595][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(1635350047<open>)] for JPA transaction]"
+1777986163595,"[2026-05-05 13:02:43,595][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@684968be]]"
+1777986163599,"[2026-05-05 13:02:43,598][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163599,"[2026-05-05 13:02:43,599][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(1635350047<open>)]]"
+1777986163601,"[2026-05-05 13:02:43,601][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(1635350047<open>)] after transaction]"
+1777986163603,"[2026-05-05 13:02:43,603][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163603,"[2026-05-05 13:02:43,603][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(1075714162<open>)] for JPA transaction]"
+1777986163603,"[2026-05-05 13:02:43,603][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@10330ade]]"
+1777986163635,"[2026-05-05 13:02:43,635][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163635,"[2026-05-05 13:02:43,635][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(1075714162<open>)]]"
+1777986163649,"[2026-05-05 13:02:43,649][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(1075714162<open>)] after transaction]"
+1777986163650,"[2026-05-05 13:02:43,649][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][Created submission: id=586 with status: INGESTION FINISHED]"
+1777986163650,"[2026-05-05 13:02:43,650][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][No active submissions found. Proceeding with ingestion for submission id=586]"
+1777986163650,"[2026-05-05 13:02:43,650][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.service.impl.SubmissionServiceImpl.updateStatusInternal]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163650,"[2026-05-05 13:02:43,650][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(117150895<open>)] for JPA transaction]"
+1777986163650,"[2026-05-05 13:02:43,650][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@28f9873c]]"
+1777986163666,"[2026-05-05 13:02:43,666][INFO ][main][it.deloitte.postrxade.service.impl.SubmissionServiceImpl::updateStatusInternal][Updated submission 586 status to order 2 (DATA VALIDATION)]"
+1777986163666,"[2026-05-05 13:02:43,666][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163666,"[2026-05-05 13:02:43,666][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(117150895<open>)]]"
+1777986163668,"[2026-05-05 13:02:43,668][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(117150895<open>)] after transaction]"
+1777986163668,"[2026-05-05 13:02:43,668][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][Updated submission 586 status to DATA_VALIDATION - starting data processing]"
+1777986163668,"[2026-05-05 13:02:43,668][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][Using STAGING-BASED ingestion (high-performance ETL approach)]"
+1777986163668,"[2026-05-05 13:02:43,668][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][=== STAGING Phase 1: Processing 1 merchant file(s) ===]"
+1777986163669,"[2026-05-05 13:02:43,668][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986163674,"[2026-05-05 13:02:43,674][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::downloadFileAsStream][Downloading file as stream from S3: s3://pos-noprod-bucket-sftp/NEXI/INPUT/TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt]"
+1777986163808,"[2026-05-05 13:02:43,808][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][Processing merchant file: TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt]"
+1777986163808,"[2026-05-05 13:02:43,808][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.service.impl.IngestionServiceImpl.createIngestionBySubmission]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163808,"[2026-05-05 13:02:43,808][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(268600220<open>)] for JPA transaction]"
+1777986163808,"[2026-05-05 13:02:43,808][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@4601d759]]"
+1777986163813,"[2026-05-05 13:02:43,812][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doGetTransaction][Found thread-bound EntityManager [SessionImpl(268600220<open>)] for JPA transaction]"
+1777986163813,"[2026-05-05 13:02:43,813][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::handleExistingTransaction][Participating in existing transaction]"
+1777986163815,"[2026-05-05 13:02:43,815][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163815,"[2026-05-05 13:02:43,815][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(268600220<open>)]]"
+1777986163817,"[2026-05-05 13:02:43,817][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(268600220<open>)] after transaction]"
+1777986163818,"[2026-05-05 13:02:43,818][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::processMerchantFile][Starting STREAMING staging-based merchant ingestion for file: TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt, submission: 586]"
+1777986163818,"[2026-05-05 13:02:43,818][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::processMerchantFile][Read 4 lines from file in 0ms]"
+1777986163828,"[2026-05-05 13:02:43,828][DEBUG][main][ma.glasnost.orika.impl.generator.ObjectFactoryGenerator::build][Generating new object factory for (Merchant)"
+1777986163828,	Using constructor: public it.deloitte.postrxade.entity.Merchant()]
+1777986163829,"[2026-05-05 13:02:43,829][DEBUG][main][ma.glasnost.orika.impl.MapperFacadeImpl::resolveMappingStrategy][MappingStrategy resolved and cached:"
+1777986163829,"	Inputs:[ sourceClass: it.deloitte.postrxade.parser.transaction.MerchantRecord, sourceType: null, destinationType: class it.deloitte.postrxade.entity.Merchant]"
+1777986163829,"	Resolved:[ strategy: InstantiateAndUseCustomMapperStrategy, sourceType: MerchantRecord, destinationType: Merchant, mapper: GeneratedMapper<MerchantRecord, Merchant> {usedConverters: [], usedMappers: [], usedMapperFacades: [], usedTypes: [] }, mapReverse?: false]]"
+1777986163829,"[2026-05-05 13:02:43,829][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::processMerchantFile][Processing batch 1: 2 merchants, 0 errors (total parsed: 2/2)]"
+1777986163829,"[2026-05-05 13:02:43,829][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.repository.impl.StagingRepositoryImpl.bulkLoadMerchantsToStaging]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163829,"[2026-05-05 13:02:43,829][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(680109998<open>)] for JPA transaction]"
+1777986163830,"[2026-05-05 13:02:43,829][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@10504bc7]]"
+1777986163830,"[2026-05-05 13:02:43,830][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::bulkLoadMerchantsToStaging][Loading 2 merchants to staging for submission: 586]"
+1777986163848,"[2026-05-05 13:02:43,847][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::bulkLoadMerchantsToStaging][Loaded 2 merchants to staging in 17ms]"
+1777986163848,"[2026-05-05 13:02:43,848][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163848,"[2026-05-05 13:02:43,848][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(680109998<open>)]]"
+1777986163850,"[2026-05-05 13:02:43,849][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(680109998<open>)] after transaction]"
+1777986163850,"[2026-05-05 13:02:43,850][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::processMerchantFile][Loaded 2 merchants to staging in 1 batches, 0 validation errors, in 32ms]"
+1777986163850,"[2026-05-05 13:02:43,850][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::processMerchantFile][Starting set-based processing from staging...]"
+1777986163850,"[2026-05-05 13:02:43,850][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.repository.impl.StagingRepositoryImpl.processMerchantsFromStaging]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163850,"[2026-05-05 13:02:43,850][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(2039218223<open>)] for JPA transaction]"
+1777986163850,"[2026-05-05 13:02:43,850][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@291f204b]]"
+1777986163850,"[2026-05-05 13:02:43,850][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processMerchantsFromStaging][Processing merchants from staging for submission: 586]"
+1777986163857,"[2026-05-05 13:02:43,857][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processMerchantsFromStaging][Processed merchants from staging in 7ms: inserted=2, duplicates=0]"
+1777986163857,"[2026-05-05 13:02:43,857][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163857,"[2026-05-05 13:02:43,857][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(2039218223<open>)]]"
+1777986163859,"[2026-05-05 13:02:43,859][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(2039218223<open>)] after transaction]"
+1777986163859,"[2026-05-05 13:02:43,859][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::processMerchantFile][Set-based processing completed in 9ms]"
+1777986163860,"[2026-05-05 13:02:43,859][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::processMerchantFile][Completed merchant ingestion in 41ms: parsed=2, inserted=2, duplicates=0, validationErrors=0]"
+1777986163860,"[2026-05-05 13:02:43,860][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][Completed merchant file TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt in 43ms: inserted=2, duplicates=0]"
+1777986163860,"[2026-05-05 13:02:43,860][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.service.impl.IngestionServiceImpl.markAsSuccess]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986163860,"[2026-05-05 13:02:43,860][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(870247192<open>)] for JPA transaction]"
+1777986163860,"[2026-05-05 13:02:43,860][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@5c909d4d]]"
+1777986163863,"[2026-05-05 13:02:43,863][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doGetTransaction][Found thread-bound EntityManager [SessionImpl(870247192<open>)] for JPA transaction]"
+1777986163863,"[2026-05-05 13:02:43,863][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::handleExistingTransaction][Participating in existing transaction]"
+1777986163866,"[2026-05-05 13:02:43,866][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986163866,"[2026-05-05 13:02:43,866][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(870247192<open>)]]"
+1777986163868,"[2026-05-05 13:02:43,868][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(870247192<open>)] after transaction]"
+1777986163868,"[2026-05-05 13:02:43,868][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFileFromInputToInputLoaded][Resolution: Moving filename/key [TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt] using folders [input: NEXI/INPUT] -> [loaded: NEXI/INPUT/LOADED]]"
+1777986163869,"[2026-05-05 13:02:43,869][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][START: Move operation | Source: s3://pos-noprod-bucket-sftp/NEXI/INPUT/TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt | Destination: s3://pos-noprod-bucket-sftp/NEXI/INPUT/LOADED/TRXPOS_32875_ANAGRAFEPOS_202801_20280217151600.txt]"
+1777986163939,"[2026-05-05 13:02:43,939][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][SUCCESS: Copy phase completed. ETag: ""55924f5188edb96143ae685b0f7f92ec""]"
+1777986163963,"[2026-05-05 13:02:43,963][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][FINISH: Move operation completed successfully.]"
+1777986163963,"[2026-05-05 13:02:43,963][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][=== STAGING Phase 1 Complete: 2 merchants inserted, 0 duplicates ===]"
+1777986163964,"[2026-05-05 13:02:43,963][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][=== STAGING Phase 2: Processing 1 transaction file(s) ===]"
+1777986163964,"[2026-05-05 13:02:43,964][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986163967,"[2026-05-05 13:02:43,967][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::downloadFileAsStream][Downloading file as stream from S3: s3://pos-noprod-bucket-sftp/NEXI/INPUT/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt]"
+1777986164010,"[2026-05-05 13:02:44,009][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][Processing transaction file: TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt]"
+1777986164010,"[2026-05-05 13:02:44,010][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.service.impl.IngestionServiceImpl.createIngestionBySubmission]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986164010,"[2026-05-05 13:02:44,010][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(975070698<open>)] for JPA transaction]"
+1777986164010,"[2026-05-05 13:02:44,010][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@7bc6a1ae]]"
+1777986164013,"[2026-05-05 13:02:44,013][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doGetTransaction][Found thread-bound EntityManager [SessionImpl(975070698<open>)] for JPA transaction]"
+1777986164013,"[2026-05-05 13:02:44,013][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::handleExistingTransaction][Participating in existing transaction]"
+1777986164014,"[2026-05-05 13:02:44,014][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986164014,"[2026-05-05 13:02:44,014][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(975070698<open>)]]"
+1777986164016,"[2026-05-05 13:02:44,016][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(975070698<open>)] after transaction]"
+1777986164017,"[2026-05-05 13:02:44,017][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][==========================================================]"
+1777986164018,"[2026-05-05 13:02:44,017][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Starting TRUE STREAMING staging-based transaction ingestion]"
+1777986164018,"[2026-05-05 13:02:44,018][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][File: TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt, Submission: 586]"
+1777986164018,"[2026-05-05 13:02:44,018][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Batch size: 10000, Max error batch: 2000]"
+1777986164018,"[2026-05-05 13:02:44,018][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][==========================================================]"
+1777986164019,"[2026-05-05 13:02:44,019][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Processing final batch 1: 0 valid transactions loaded to staging, 2 validation errors (total processed: 2 lines)]"
+1777986164020,"[2026-05-05 13:02:44,020][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.bulkInsertRecordsWithCauses]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986164020,"[2026-05-05 13:02:44,020][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(475539573<open>)] for JPA transaction]"
+1777986164020,"[2026-05-05 13:02:44,020][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@67d5075b]]"
+1777986164021,"[2026-05-05 13:02:44,021][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doGetTransaction][Found thread-bound EntityManager [SessionImpl(475539573<open>)] for JPA transaction]"
+1777986164021,"[2026-05-05 13:02:44,021][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::handleExistingTransaction][Participating in existing transaction]"
+1777986164039,"[2026-05-05 13:02:44,039][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986164039,"[2026-05-05 13:02:44,039][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(475539573<open>)]]"
+1777986164040,"[2026-05-05 13:02:44,040][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(475539573<open>)] after transaction]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][==========================================================]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][FILE PARSING SUMMARY]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][==========================================================]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Total lines read (non-blank): 4 (header + transactions + footer)]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Total transactions processed: 2 (valid + errors, excluding header/footer)]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][  - Valid transactions loaded to staging: 0]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][  - Validation errors (saved to ERROR_RECORD): 2]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][  - Expected: 2 (should match totalParsed + totalValidationErrors)]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Batches processed: 1]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Time elapsed: 23ms]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][==========================================================]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::loadTransactionFileToStaging][Completed transaction file load-to-staging in 23ms: parsed=0, validationErrors=2]"
+1777986164041,"[2026-05-05 13:02:44,041][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][Completed transaction file TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt load-to-staging in 25ms: validationErrors=2]"
+1777986164041,"[2026-05-05 13:02:44,041][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.service.impl.IngestionServiceImpl.markAsSuccess]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986164041,"[2026-05-05 13:02:44,041][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(1905395550<open>)] for JPA transaction]"
+1777986164041,"[2026-05-05 13:02:44,041][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@2c33bc4]]"
+1777986164044,"[2026-05-05 13:02:44,044][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doGetTransaction][Found thread-bound EntityManager [SessionImpl(1905395550<open>)] for JPA transaction]"
+1777986164044,"[2026-05-05 13:02:44,044][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::handleExistingTransaction][Participating in existing transaction]"
+1777986164045,"[2026-05-05 13:02:44,045][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986164046,"[2026-05-05 13:02:44,045][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(1905395550<open>)]]"
+1777986164047,"[2026-05-05 13:02:44,047][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(1905395550<open>)] after transaction]"
+1777986164047,"[2026-05-05 13:02:44,047][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFileFromInputToInputLoaded][Resolution: Moving filename/key [TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt] using folders [input: NEXI/INPUT] -> [loaded: NEXI/INPUT/LOADED]]"
+1777986164047,"[2026-05-05 13:02:44,047][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][START: Move operation | Source: s3://pos-noprod-bucket-sftp/NEXI/INPUT/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt | Destination: s3://pos-noprod-bucket-sftp/NEXI/INPUT/LOADED/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.txt]"
+1777986164102,"[2026-05-05 13:02:44,102][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][SUCCESS: Copy phase completed. ETag: ""f5c2cb46ae9b675b26810258a6ee12e1""]"
+1777986164122,"[2026-05-05 13:02:44,122][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][FINISH: Move operation completed successfully.]"
+1777986164122,"[2026-05-05 13:02:44,122][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][Finalizing transactions from staging for submission 586 (1 transaction file(s))...]"
+1777986164122,"[2026-05-05 13:02:44,122][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::finalizeTransactionsFromStaging][Starting set-based processing from staging for submission 586...]"
+1777986164123,"[2026-05-05 13:02:44,123][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processTransactionsFromStaging][Processing transactions from staging for submission: 586]"
+1777986164123,"[2026-05-05 13:02:44,123][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [null]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,timeout_600]"
+1777986164123,"[2026-05-05 13:02:44,123][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(1878722468<open>)] for JPA transaction]"
+1777986164123,"[2026-05-05 13:02:44,123][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@925fa0a]]"
+1777986164126,"[2026-05-05 13:02:44,126][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986164126,"[2026-05-05 13:02:44,126][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(1878722468<open>)]]"
+1777986164127,"[2026-05-05 13:02:44,127][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(1878722468<open>)] after transaction]"
+1777986164127,"[2026-05-05 13:02:44,127][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processTransactionsFromStaging][Total records to process: 0]"
+1777986164127,"[2026-05-05 13:02:44,127][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processTransactionsFromStaging][Using single-pass processing for 0 records (small dataset)]"
+1777986164127,"[2026-05-05 13:02:44,127][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processTransactionsSinglePass][==========================================]"
+1777986164127,"[2026-05-05 13:02:44,127][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processTransactionsSinglePass][SINGLE-PASS PROCESSING - VERSION WITHOUT temp_inserted_transactions]"
+1777986164127,"[2026-05-05 13:02:44,127][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processTransactionsSinglePass][Starting optimized single-pass processing for submission: 586]"
+1777986164127,"[2026-05-05 13:02:44,127][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::processTransactionsSinglePass][==========================================]"
+1777986164128,"[2026-05-05 13:02:44,128][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [null]: PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,timeout_600]"
+1777986164128,"[2026-05-05 13:02:44,128][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(1715938535<open>)] for JPA transaction]"
+1777986164128,"[2026-05-05 13:02:44,128][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@e3ded9]]"
+1777986164130,"[2026-05-05 13:02:44,130][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Step 1: Inserting valid transactions...]"
+1777986164131,"[2026-05-05 13:02:44,130][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: About to execute INSERT query WITHOUT temp_inserted_transactions table]"
+1777986164132,"[2026-05-05 13:02:44,132][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Debug: Found 0 transactions with matching merchants in STG_MERCHANT for submission 586]"
+1777986164134,"[2026-05-05 13:02:44,134][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Debug: Total transactions in STG_TRANSACTION for submission 586: 0]"
+1777986164135,"[2026-05-05 13:02:44,135][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Debug: Total merchants in STG_MERCHANT for submission 586: 2]"
+1777986164137,"[2026-05-05 13:02:44,137][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Debug: Unique transaction keys (with merchant) for submission 586: 0]"
+1777986164137,"[2026-05-05 13:02:44,137][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: Executing INSERT query - NO temp_inserted_transactions table will be used]"
+1777986164137,"[2026-05-05 13:02:44,137][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: Query does NOT contain LEFT JOIN temp_inserted_transactions]"
+1777986164137,"[2026-05-05 13:02:44,137][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: Query does NOT contain AND t.id_esercente IS NULL]"
+1777986164139,"[2026-05-05 13:02:44,139][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: INSERT query completed successfully - 0 transactions inserted in 9ms]"
+1777986164139,"[2026-05-05 13:02:44,139][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Step 1 completed in 9ms: 0 transactions inserted]"
+1777986164139,"[2026-05-05 13:02:44,139][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Step 2: Counting errors (duplicates and missing merchants) - SELECT only, no UPDATE...]"
+1777986164141,"[2026-05-05 13:02:44,141][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: Found 0 duplicate transactions within batch]"
+1777986164143,"[2026-05-05 13:02:44,143][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: Found 0 duplicate transactions already in TRANSACTION]"
+1777986164144,"[2026-05-05 13:02:44,144][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS: Found 0 transactions with missing merchants]"
+1777986164144,"[2026-05-05 13:02:44,144][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Step 2 completed in 5ms: 0 duplicates (0 within batch + 0 already in TRANSACTION), 0 missing merchants]"
+1777986164145,"[2026-05-05 13:02:44,144][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][==========================================]"
+1777986164145,"[2026-05-05 13:02:44,145][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][SINGLE-PASS PROCESSING COMPLETED - VERSION WITHOUT temp_inserted_transactions]"
+1777986164145,"[2026-05-05 13:02:44,145][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][Single-pass processing completed in 17ms: inserted=0, duplicates=0, missingMerchants=0]"
+1777986164145,"[2026-05-05 13:02:44,145][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::lambda$processTransactionsSinglePass$14][==========================================]"
+1777986164145,"[2026-05-05 13:02:44,145][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986164145,"[2026-05-05 13:02:44,145][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(1715938535<open>)]]"
+1777986164145,"[2026-05-05 13:02:44,145][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(1715938535<open>)] after transaction]"
+1777986164146,"[2026-05-05 13:02:44,145][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::finalizeTransactionsFromStaging][Set-based processing completed in 23ms]"
+1777986164146,"[2026-05-05 13:02:44,146][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][Finalize from staging completed in 24ms: inserted=0, duplicates=0, missingMerchants=0]"
+1777986164146,"[2026-05-05 13:02:44,146][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][=== STAGING Phase 2 Complete: 0 transactions inserted, 0 duplicates, 0 missing merchants, 2 validation errors ===]"
+1777986164146,"[2026-05-05 13:02:44,146][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][=== STAGING INGESTION COMPLETE in 478ms (0 seconds) ===]"
+1777986164146,"[2026-05-05 13:02:44,146][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::processFilesWithStagingApproach][Summary: merchants=2/0 inserted/dup, transactions=0/0/0 inserted/dup/missing]"
+1777986164146,"[2026-05-05 13:02:44,146][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.service.impl.SubmissionServiceImpl.updateStatusInternal]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986164146,"[2026-05-05 13:02:44,146][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(640702925<open>)] for JPA transaction]"
+1777986164146,"[2026-05-05 13:02:44,146][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@60f9d3e1]]"
+1777986164151,"[2026-05-05 13:02:44,151][INFO ][main][it.deloitte.postrxade.service.impl.SubmissionServiceImpl::updateStatusInternal][Updated submission 586 status to order 3 (VALIDATION COMPLETED)]"
+1777986164151,"[2026-05-05 13:02:44,151][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986164151,"[2026-05-05 13:02:44,151][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(640702925<open>)]]"
+1777986164153,"[2026-05-05 13:02:44,153][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(640702925<open>)] after transaction]"
+1777986164153,"[2026-05-05 13:02:44,153][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][Updated submission 586 status to VALIDATION_COMPLETED - all data processed successfully]"
+1777986164153,"[2026-05-05 13:02:44,153][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][Clearing staging tables after successful ingestion for submission: 586]"
+1777986164153,"[2026-05-05 13:02:44,153][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::getTransaction][Creating new transaction with name [it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl.cleanupStaging]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT]"
+1777986164153,"[2026-05-05 13:02:44,153][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Opened new EntityManager [SessionImpl(1673256405<open>)] for JPA transaction]"
+1777986164153,"[2026-05-05 13:02:44,153][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doBegin][Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@7b58475e]]"
+1777986164154,"[2026-05-05 13:02:44,153][INFO ][main][it.deloitte.postrxade.service.impl.StagingIngestionServiceImpl::cleanupStaging][Cleaning up staging tables for submission: 586]"
+1777986164154,"[2026-05-05 13:02:44,154][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doGetTransaction][Found thread-bound EntityManager [SessionImpl(1673256405<open>)] for JPA transaction]"
+1777986164154,"[2026-05-05 13:02:44,154][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::handleExistingTransaction][Participating in existing transaction]"
+1777986164154,"[2026-05-05 13:02:44,154][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::clearStaging][Clearing staging tables (TRUNCATE) for submission: 586 using stored procedure]"
+1777986164319,"[2026-05-05 13:02:44,319][INFO ][main][it.deloitte.postrxade.repository.impl.StagingRepositoryImpl::clearStaging][Staging tables cleared (TRUNCATE) for submission: 586 via stored procedure]"
+1777986164319,"[2026-05-05 13:02:44,319][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::processCommit][Initiating transaction commit]"
+1777986164319,"[2026-05-05 13:02:44,319][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCommit][Committing JPA transaction on EntityManager [SessionImpl(1673256405<open>)]]"
+1777986164319,"[2026-05-05 13:02:44,319][DEBUG][main][org.springframework.orm.jpa.JpaTransactionManager::doCleanupAfterCompletion][Closing JPA EntityManager [SessionImpl(1673256405<open>)] after transaction]"
+1777986164319,"[2026-05-05 13:02:44,319][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFileFromInputToInputLoaded][Resolution: Moving filename/key [NEXI/INPUT/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.eot] using folders [input: NEXI/INPUT] -> [loaded: NEXI/INPUT/LOADED]]"
+1777986164320,"[2026-05-05 13:02:44,319][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][START: Move operation | Source: s3://pos-noprod-bucket-sftp/NEXI/INPUT/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.eot | Destination: s3://pos-noprod-bucket-sftp/NEXI/INPUT/LOADED/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.eot]"
+1777986164386,"[2026-05-05 13:02:44,386][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][SUCCESS: Copy phase completed. ETag: ""c1af479c184bd01e5954dbcdbbf32de0""]"
+1777986164408,"[2026-05-05 13:02:44,408][INFO ][main][it.deloitte.postrxade.service.impl.S3ServiceImpl::moveFile][FINISH: Move operation completed successfully.]"
+1777986164408,"[2026-05-05 13:02:44,408][INFO ][main][it.deloitte.postrxade.service.impl.ObligationServiceImpl::ingestObligationFiles][Moved .eot file NEXI/INPUT/TRXPOS_32875_TRANSATOPOS_202801_20280218184806.eot to input-loaded folder after successful ingestion]"
+1777986164408,"[2026-05-05 13:02:44,408][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986164412,"[2026-05-05 13:02:44,412][DEBUG][main][org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler::invoke][Creating new EntityManager for shared EntityManager invocation]"
+1777986164415,"[2026-05-05 13:02:44,415][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][==========================================================]"
+1777986164415,"[2026-05-05 13:02:44,415][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][   ECS BATCH INGESTION COMPLETED SUCCESSFULLY]"
+1777986164415,"[2026-05-05 13:02:44,415][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][==========================================================]"
+1777986164416,"[2026-05-05 13:02:44,416][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][Total duration: 0 minutes 1 seconds]"
+1777986164416,"[2026-05-05 13:02:44,416][INFO ][main][it.deloitte.postrxade.batch.BatchIngestionRunner::run][End time: 2026-05-05T13:02:44.416055413Z]"
+1777986164417,"[2026-05-05 13:02:44,417][DEBUG][SpringApplicationShutdownHook][org.springframework.context.annotation.AnnotationConfigApplicationContext::doClose][Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@158d255c, started on Tue May 05 13:02:35 UTC 2026]"
+1777986164418,"[2026-05-05 13:02:44,418][DEBUG][SpringApplicationShutdownHook][org.springframework.context.support.DefaultLifecycleProcessor::stop][Stopping beans in phase 1073741823]"
+1777986164419,"[2026-05-05 13:02:44,419][DEBUG][SpringApplicationShutdownHook][org.springframework.context.support.DefaultLifecycleProcessor::lambda$doStop$5][Bean 'taskExecutor' completed its stop procedure]"
+1777986164419,"[2026-05-05 13:02:44,419][DEBUG][SpringApplicationShutdownHook][org.springframework.context.support.DefaultLifecycleProcessor::stop][Stopping beans in phase -2147483647]"
+1777986164419,"[2026-05-05 13:02:44,419][DEBUG][SpringApplicationShutdownHook][org.springframework.context.support.DefaultLifecycleProcessor::lambda$doStop$5][Bean 'springBootLoggingLifecycle' completed its stop procedure]"
+1777986164419,"[2026-05-05 13:02:44,419][DEBUG][SpringApplicationShutdownHook][org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler::shutdown][Shutting down ExecutorService 'taskScheduler']"
+1777986164421,"[2026-05-05 13:02:44,421][DEBUG][SpringApplicationShutdownHook][org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor::shutdown][Shutting down ExecutorService 'taskExecutor']"
+1777986164421,"[2026-05-05 13:02:44,421][DEBUG][SpringApplicationShutdownHook][org.springframework.beans.factory.support.DisposableBeanAdapter::logDestroyMethodCompletion][Custom destroy method 'close' on bean with name 'simpleMeterRegistry' completed]"
+1777986164426,"[2026-05-05 13:02:44,426][INFO ][SpringApplicationShutdownHook][org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean::destroy][Closing JPA EntityManagerFactory for persistence unit 'default']"
