@@ -16,7 +16,9 @@ public final class OutputFileFormatter {
 
     private static final String AMEX_INTERMEDIARIO_MARKER = "36019";
 
-    /** @param codiceFiscale codice fiscale per tenant (es. Nexi 04107060966, Amex 14778691007) */
+    /**
+     * @param codiceFiscale codice fiscale per tenant (es. Nexi 04107060966, Amex 14778691007)
+     */
     public static String createHeader(String codiceFiscale) {
         StringBuilder sb = new StringBuilder();
 
@@ -45,7 +47,9 @@ public final class OutputFileFormatter {
         return sb.toString();
     }
 
-    /** @param codiceFiscale codice fiscale per tenant (es. Nexi 04107060966, Amex 14778691007) */
+    /**
+     * @param codiceFiscale codice fiscale per tenant (es. Nexi 04107060966, Amex 14778691007)
+     */
     public static String createFooter(String codiceFiscale) {
         StringBuilder sb = new StringBuilder();
 
@@ -76,7 +80,9 @@ public final class OutputFileFormatter {
         return sb.toString();
     }
 
-    /** Codice fiscale intermediario per tenant (Nexi 04107060966, Amex 14778691007) – stesso valore in ogni riga dati alla posizione 2. */
+    /**
+     * Codice fiscale intermediario per tenant (Nexi 04107060966, Amex 14778691007) – stesso valore in ogni riga dati alla posizione 2.
+     */
     public static String toOutputFileString(Transaction transaction, String codiceFiscale) {
         Merchant merchant = transaction.getMerchant();
         StringBuilder sb = new StringBuilder();
@@ -96,9 +102,9 @@ public final class OutputFileFormatter {
 
         // IMP-OPE: convertire BigDecimal in formato senza punto decimale (moltiplicare per 100)
         // Esempio: 70.00 -> 7000 -> "000007000" (9 cifre, ultime 2 sono decimali)
-        String impOpe = transaction.getImpOpe() != null 
-            ? String.valueOf(transaction.getImpOpe().multiply(new java.math.BigDecimal("100")).intValue())
-            : "0";
+        String impOpe = transaction.getImpOpe() != null
+                ? String.valueOf(transaction.getImpOpe().multiply(new java.math.BigDecimal("100")).intValue())
+                : "0";
         sb.append(leftPad(impOpe, 9, '0'));
 
         String currency = transaction.getDivisaOpe();
@@ -128,7 +134,9 @@ public final class OutputFileFormatter {
         return sb.toString();
     }
 
-    /** Codice fiscale intermediario per tenant (Nexi 04107060966, Amex 14778691007) – stesso valore in ogni riga dati alla posizione 2. */
+    /**
+     * Codice fiscale intermediario per tenant (Nexi 04107060966, Amex 14778691007) – stesso valore in ogni riga dati alla posizione 2.
+     */
     public static String toOutputFileString(ResolvedTransaction transaction, String codiceFiscale) {
         Merchant merchant = transaction.getMerchant();
         StringBuilder sb = new StringBuilder();
@@ -148,9 +156,9 @@ public final class OutputFileFormatter {
 
         // IMP-OPE: convertire BigDecimal in formato senza punto decimale (moltiplicare per 100)
         // Esempio: 70.00 -> 7000 -> "000007000" (9 cifre, ultime 2 sono decimali)
-        String impOpe = transaction.getImpOpe() != null 
-            ? String.valueOf(transaction.getImpOpe().multiply(new java.math.BigDecimal("100")).intValue())
-            : "0";
+        String impOpe = transaction.getImpOpe() != null
+                ? String.valueOf(transaction.getImpOpe().multiply(new java.math.BigDecimal("100")).intValue())
+                : "0";
         sb.append(leftPad(impOpe, 9, '0'));
 
         String currency = transaction.getDivisaOpe();
@@ -186,15 +194,9 @@ public final class OutputFileFormatter {
 
     private static String resolveIdEsercente(String idIntermediario, String idEsercente) {
         String value = nullSafe(idEsercente);
-        if (idIntermediario != null
-                && idIntermediario.replaceFirst("^0", "").equals(AMEX_INTERMEDIARIO_MARKER)) {
-            String stripped = value.replaceFirst("^0", "");
-            if (stripped.length() == 13) {
-                String suffix = stripped.substring(stripped.length() - 3);
-                if (CountryNumericCodeEnum.isValidNumericCode(suffix)) {
-                    return stripped.substring(0, stripped.length() - 3);
-                }
-                return stripped;
+        if (idIntermediario != null && idIntermediario.contains(AMEX_INTERMEDIARIO_MARKER) && idEsercente.length() == 13) {
+            if (CountryNumericCodeEnum.isValidNumericCode(idEsercente.substring(idEsercente.length()-3))) {
+                return idEsercente.substring(0, 10);
             }
         }
         return value;

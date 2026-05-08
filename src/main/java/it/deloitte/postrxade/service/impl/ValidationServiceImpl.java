@@ -363,6 +363,7 @@ public class ValidationServiceImpl implements ValidationService {
                         fy, period, jobId.substring(0, 8));
                 // Multi-tenant: path S3 per tenant (AMEX/OUTPUT o NEXI/OUTPUT), allineato a EcsTaskServiceImpl
                 String resolvedTenant = TenantConfiguration.resolveTenantAlias(TenantContext.getTenantId());
+                boolean isNexi = "nexi".equalsIgnoreCase(resolvedTenant);
                 String outputFolderNorm = (resolvedTenant != null && !resolvedTenant.isBlank())
                         ? resolvedTenant.toUpperCase() + "/OUTPUT"
                         : (s3OutputFolder == null ? "OUTPUT" : s3OutputFolder.replaceAll("/+$", ""));
@@ -401,9 +402,11 @@ public class ValidationServiceImpl implements ValidationService {
                     Font headerFont = workbook.createFont();
                     headerFont.setBold(true);
                     headerStyle.setFont(headerFont);
-                    
-                    String[] headers = {"raw_record", "error_level", "error_name", "error_description", "batch_id", "timestamp", "file_type", "country"};
-                    
+
+                    String[] headers = isNexi
+                            ? new String[]{"raw_record", "error_level", "error_name", "error_description", "batch_id", "timestamp", "file_type", "country"}
+                            : new String[]{"raw_record", "error_level", "error_name", "error_description", "batch_id", "timestamp", "file_type"};
+
                     // Helper method to create header row
                     java.util.function.Consumer<Sheet> createHeader = (sheet) -> {
                         Row headerRow = sheet.createRow(0);
@@ -413,7 +416,7 @@ public class ValidationServiceImpl implements ValidationService {
                             cell.setCellStyle(headerStyle);
                         }
                     };
-                    
+
                     // Create initial sheets
                     Sheet errorsSheet = workbook.createSheet("Errors");
                     Sheet warningsSheet = workbook.createSheet("Warnings");
@@ -507,8 +510,10 @@ public class ValidationServiceImpl implements ValidationService {
                             excelRow.createCell(4).setCellValue(batchId != null ? batchId : "");
                             excelRow.createCell(5).setCellValue(timestamp);
                             excelRow.createCell(6).setCellValue(ingestionTypeName != null ? ingestionTypeName : "");
-                            excelRow.createCell(7).setCellValue(resolveCountryForNexi(rawRow));
-                            
+                            if (isNexi){
+                                excelRow.createCell(7).setCellValue(resolveCountryForNexi(rawRow));
+                            }
+
                             if ("error".equals(type)) {
                                 totalErrors++;
                             } else {
@@ -631,7 +636,7 @@ public class ValidationServiceImpl implements ValidationService {
             return "";
         }
         String intermediario = rawRow.substring(1, Math.min(rawRow.length(), 12)).trim();
-        if (!intermediario.replaceFirst("^0", "").equals(NEXI_INTERMEDIARIO_MARKER)) {
+        if (!intermediario.contains(NEXI_INTERMEDIARIO_MARKER)) {
             return "";
         }
         String idEsercente = rawRow.length() > 12

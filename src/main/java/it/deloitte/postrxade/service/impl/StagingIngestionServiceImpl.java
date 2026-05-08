@@ -54,6 +54,7 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
     private final MapperFacade mapperFacade;
     private final FileLineParser parser = new FileLineParser();
     private final FileLineValidator validator = new FileLineValidator();
+    private static final int RAW_ROW_MAX_LENGTH = 250;
 
     public StagingIngestionServiceImpl(
             StagingRepository stagingRepository,
@@ -64,6 +65,18 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
         this.errorRecordRepository = errorRecordRepository;
         this.errorTypeService = errorTypeService;
         this.mapperFacade = mapperFacade;
+    }
+
+    private static String truncateRawRow(String line) {
+        if (line == null) return null;
+        return line.length() > RAW_ROW_MAX_LENGTH ? line.substring(0, RAW_ROW_MAX_LENGTH) : line;
+    }
+
+    private static ErrorRecordCause lineTooLongCause(int actualLength) {
+        return new ErrorRecordCause(
+                String.format("Line length %d exceeds maximum allowed length of %d characters",
+                        actualLength, RAW_ROW_MAX_LENGTH),
+                ErrorTypeCode.INVALID_FORMAT.getErrorCode());
     }
 
     // ==================== MERCHANT FILE PROCESSING ====================
@@ -180,6 +193,10 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
             Submission submission,
             List<Merchant> merchants,
             Set<String> fileLevelMerchants) throws NotFoundRecordException {
+
+        if (line.length() > RAW_ROW_MAX_LENGTH) {
+            return createErrorRecord(List.of(lineTooLongCause(line.length())), line, ingestion, submission);
+        }
         
         MerchantRecord record = parser.parseMerchant(line);
         
@@ -471,6 +488,10 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
             Submission submission,
             Obbligation obbligation,
             List<Transaction> transactions) throws NotFoundRecordException {
+
+        if (line.length() > RAW_ROW_MAX_LENGTH) {
+            return createErrorRecord(List.of(lineTooLongCause(line.length())), line, ingestion, submission);
+        }
         
         try {
             TransactionRecord record = parser.parseTransaction(line);
@@ -938,7 +959,7 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
             Submission submission) throws NotFoundRecordException {
         
         ErrorRecord errorRecord = new ErrorRecord();
-        errorRecord.setRawRow(line);
+        errorRecord.setRawRow(truncateRawRow(line));
         errorRecord.setIngestion(ingestion);
         errorRecord.setSubmission(submission);
 
@@ -967,7 +988,7 @@ public class StagingIngestionServiceImpl implements StagingIngestionService {
             Submission submission) throws NotFoundRecordException {
         
         ErrorRecord errorRecord = new ErrorRecord();
-        errorRecord.setRawRow(line);
+        errorRecord.setRawRow(truncateRawRow(line));
         errorRecord.setIngestion(ingestion);
         errorRecord.setSubmission(submission);
 
