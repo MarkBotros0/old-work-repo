@@ -14,8 +14,6 @@ public final class OutputFileFormatter {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy");
     private static String os = System.getProperty("os.name").toLowerCase();
 
-    private static final String AMEX_INTERMEDIARIO_MARKER = "36019";
-
     /**
      * @param codiceFiscale codice fiscale per tenant (es. Nexi 04107060966, Amex 14778691007)
      */
@@ -110,7 +108,7 @@ public final class OutputFileFormatter {
         String currency = transaction.getDivisaOpe();
         sb.append(currency);
 
-        sb.append(rightPad(resolveIdEsercente(transaction.getIdIntermediario(), transaction.getIdEsercente()), 30, ' '));
+        sb.append(rightPad(resolveIdEsercente(transaction.getIdEsercente()), 30, ' '));
 
         sb.append(rightPad(nullSafe(transaction.getIdPos()), 30, ' '));
 
@@ -164,7 +162,7 @@ public final class OutputFileFormatter {
         String currency = transaction.getDivisaOpe();
         sb.append(currency);
 
-        sb.append(rightPad(resolveIdEsercente(transaction.getIdIntermediario(), transaction.getIdEsercente()), 30, ' '));
+        sb.append(rightPad(resolveIdEsercente(transaction.getIdEsercente()), 30, ' '));
 
         sb.append(rightPad(nullSafe(transaction.getIdPos()), 30, ' '));
 
@@ -192,9 +190,10 @@ public final class OutputFileFormatter {
         return value != null ? value : "";
     }
 
-    private static String resolveIdEsercente(String idIntermediario, String idEsercente) {
+    private static String resolveIdEsercente(String idEsercente) {
         String value = nullSafe(idEsercente);
-        if (idIntermediario != null && idIntermediario.contains(AMEX_INTERMEDIARIO_MARKER) && idEsercente.length() == 13) {
+        String tenantId = System.getenv("TENANT_ID");
+        if (tenantId != null && "amex".equalsIgnoreCase(tenantId.trim()) && idEsercente != null && idEsercente.length() == 13) {
             if (CountryNumericCodeEnum.isValidNumericCode(idEsercente.substring(idEsercente.length()-3))) {
                 return idEsercente.substring(0, 10);
             }
